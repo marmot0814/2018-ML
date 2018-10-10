@@ -1,0 +1,4 @@
+#! /bin/bash
+
+python3 data_processing.py
+dot -Tpdf dataOutput.dot -o Tree.pdf
