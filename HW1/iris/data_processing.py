@@ -1,56 +1,121 @@
+import csv, wget, random, os, math
 from sklearn.feature_extraction import DictVectorizer
-import csv
-from sklearn import preprocessing
-from sklearn import tree
+from sklearn import preprocessing, tree
 from sklearn.externals.six import StringIO
 from sklearn.model_selection import cross_val_score
-import random
+
+
 # Read csv file and put feathers in a list of dict and list of class label
-allData = open('data.csv', 'r')
-reader = csv.reader(allData)
+class Iris_Forest:
 
-# data headers
-headers = next(reader)[0:4]
+    def __init__(self, dataname):
+        self.data = dataname
+        if not os.path.exists(dataname):
+            self.fetch_data()
 
-# feature
-data = []
+    def fetch_data(
+            self,
+            url="https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data",
+    ):
+        filename = self.data
+        tmp_file = wget.download(url)
+        label = "sepal length,sepal width,petal length,petal width,outcome\n"
+        # read data to tmp
+        with open(tmp_file, 'r') as file:
+            tmp = file.read()
+        # remove file inorder to recreate with disired filename
+        if os.path.exists(tmp_file):
+            os.remove(tmp_file)
+        filtered = ''
+        # remove blank line
+        for line in tmp.split('\n'):
+            if line.strip():
+                filtered += line + '\n'
+        with open(filename, 'w+') as file:
+            file.write(label + filtered)
+        os.rename(filename, "data.csv")
 
-#label
-target = []
-outcomes = {}
+    def create_trees(self, tree_cnt):
+        allData = open(self.data, 'r')
+        reader = csv.reader(allData)
 
-# construct data and target
-for row in reader:
-    if outcomes.get(row[-1]) == None:
-        outcomes[row[-1]] = len(outcomes)
+        # data headers
+        headers = next(reader)[0:4]
 
-    target.append(outcomes[row[-1]])
+        # feature
+        data = []
 
-    col = []
-    for i in range(0, len(row) - 1):
-        col.append(float(row[i]))
-    data.append(col)
+        #label
+        target = []  # Y
+        outcomes = {}  # classes
 
-# shuffle the data
-shuffle_index = [x for x in range(0, len(target))]
-random.shuffle(shuffle_index)
-data = [x for _, x in sorted(zip(shuffle_index, data))]
-target = [x for _, x in sorted(zip(shuffle_index, target))]
+        # construct data and target
+        for row in reader:
+            if outcomes.get(row[-1]) == None:
+                outcomes[row[-1]] = len(outcomes)
 
-# generate outcome_name
-outcome_name = []
-for outcome in outcomes:
-    outcome_name.append(outcome)
+            target.append(outcomes[row[-1]])
 
-# build Tree
-clf = tree.DecisionTreeClassifier(criterion='entropy')
-clf = clf.fit(data, target)
-# export dot file
-with open("dataOutput.dot", 'w') as f:
-    f = tree.export_graphviz(
-        clf, feature_names=headers, class_names=outcome_name, out_file=f)
+            col = []
+            for i in range(0, len(row) - 1):
+                col.append(float(row[i]))
+            data.append(col)
 
+        # create trees
+        self.forest = []
+        for tree_i in range(tree_cnt):
+            # handle partial data for current tree
+            tree_sample_index = random.sample([x for x in range(0, len(data))],
+                                              math.ceil(0.7 * len(data)))
+            tree_data = [data[i] for i in tree_sample_index]
+            tree_target = [target[i] for i in tree_sample_index]
+
+            # shuffle the data
+            shuffle_index = [x for x in range(0, len(tree_target))]
+            random.shuffle(shuffle_index)
+            tree_data = [x for _, x in sorted(zip(shuffle_index, tree_data))]
+            tree_target = [
+                x for _, x in sorted(zip(shuffle_index, tree_target))
+            ]
+
+            # generate outcome_name
+            outcome_name = []
+            for outcome in outcomes:
+                outcome_name.append(outcome)
+            self.outcome_name = outcome_name
+            # build Tree
+            clf = tree.DecisionTreeClassifier(criterion='entropy')
+            clf = clf.fit(tree_data, tree_target)
+            self.forest.append(clf)
+            # export dot file
+            with open("dataOutput_{}.dot".format(tree_i), 'w') as f:
+                f = tree.export_graphviz(
+                    clf,
+                    feature_names=headers,
+                    class_names=outcome_name,
+                    out_file=f)
+
+    def predict(self, input_data):
+        vote = [0, 0, 0]
+        try:
+            for tree in self.forest:
+                vote[tree.predict(input_data)[0]] += 1
+            prediction = [i for i, j in enumerate(vote) if j == max(vote)]
+            if len(prediction) == 1:
+                print(self.outcome_name[prediction[0]])
+            else:
+                print("Ties:")
+                for candicate in prediction:
+                    print(self.outcome_name[candicate])
+        except AttributeError:
+            print(
+                "*** Error: Please run create_trees() before predicting! ***")
+
+
+forest = Iris_Forest('data.csv')
+forest.create_trees(4)
+forest.predict([[5.1, 3.5, 1.4, 0.2]])
 # K fold validation
-scores = cross_val_score(clf, data, target, cv=5, scoring='accuracy')
-print(scores)
-print(scores.mean())
+# scores = cross_val_score(clf, data, target, cv=5, scoring='accuracy')
+# print(scores)
+# print(scores.mean())
