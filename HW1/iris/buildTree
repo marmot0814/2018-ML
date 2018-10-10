@@ -1,4 +1,4 @@
 #! /bin/bash
 python3 data_processing.py
 ls | egrep "_\d{1}\.dot$" | awk '{printf "dot -Tpdf dataOutput_%d.dot -o Tree_%d.pdf\n",NR-1,NR-1 }' | bash
-dot -Tpdf dataOutput.dot -o Tree.pdf
+#dot -Tpdf dataOutput.dot -o Tree.pdf
