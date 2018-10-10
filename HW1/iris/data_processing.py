@@ -18,7 +18,7 @@ data = []
 target = []
 outcomes = {}
 
-# contruct data and target
+# construct data and target
 for row in reader:
     if outcomes.get(row[-1]) == None:
         outcomes[row[-1]] = len(outcomes)

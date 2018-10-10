@@ -1,4 +1,5 @@
 #! /bin/bash
 
+python3 grab_data.py
 python3 data_processing.py
 dot -Tpdf dataOutput.dot -o Tree.pdf
