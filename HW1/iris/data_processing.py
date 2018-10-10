@@ -9,29 +9,36 @@ allData = open('data.csv', 'r')
 reader = csv.reader(allData)
 
 # data headers
-headers = next(reader)
+headers = next(reader)[0:4]
 
 # feature
-dummyX = []
+data = []
 
 #label
-labelList = []
+target = []
+outcomes = {}
 
+# contruct data and target
 for row in reader:
-    labelList.append(row[-1])
+    if outcomes.get(row[-1]) == None:
+        outcomes[row[-1]] = len(outcomes)
+
+    target.append(outcomes[row[-1]])
+
     col = []
     for i in range(0, len(row) - 1):
         col.append(float(row[i]))
-    dummyX.append(col)
+    data.append(col)
 
-lb = preprocessing.LabelBinarizer()
-dummyY = lb.fit_transform(labelList)
+# generate outcome_name
+outcome_name = []
+for outcome in outcomes:
+    outcome_name.append(outcome)
 
-# print (dummyX)
-# print (dummyY)
-
+# build Tree
 clf = tree.DecisionTreeClassifier(criterion='entropy')
-clf = clf.fit(dummyX, dummyY)
+clf = clf.fit(data, target)
 
+# export dot file
 with open("dataOutput.dot", 'w') as f:
-    f = tree.export_graphviz(clf, feature_names = headers[0:4], out_file = f)
+    f = tree.export_graphviz(clf, feature_names = headers, class_names = outcome_name, out_file = f)
