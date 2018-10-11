@@ -1,34 +1,55 @@
-import pandas as pd
+# create data from googleplaystore.csv
+import csv
 
-df = pd.read_csv('googleplaystore.csv')[['Category', 'Rating', 'Reviews', 'Size', 'Installs', 'Price', 'Genres']]
+attributes = ['Rating', 'Reviews', 'Size', 'Installs', 'Price', 'Genres']
+outcomes = {} # Category, row[1]
+outcome_name = []
+data = []
 
+with open('googleplaystore.csv', 'r') as csvfile:
 
-for row in df.iterrows():
-    index, row = row[0], row[1]
+    rows = csv.reader(csvfile)
+    next(rows)
 
-    # if Rating is NaN, then drop it
-    if row['Rating'] != row['Rating']:
-        df = df.drop(index)
-        continue
+    for row in rows:
 
-    # only a trash data
-    if row['Category'] == '1.9':
-        df = df.drop(index)
-        continue
+        # extract illegal entries
+        # if Rating is NaN, then drop it
+        if row[2] == 'NaN':
+            continue
+        # only a trash data
+        if row[1] == '1.9':
+            continue
+        # if size isn't float
+        if row[4][0] == 'V':
+            continue
 
-    # convert str to int
-    df.loc[index, 'Installs'] = int(row['Installs'][:len(row['Installs']) - 1].replace(',',''))
+        # construct possible outcomes
+        if outcomes.get(row[1]) == None:
+            outcomes[row[1]] = len(outcomes)
 
-    # if Size isn't flaot, then drop it
-    if row['Size'][0] == 'V':
-        df = df.drop(index)
-        continue
-    df.loc[index, 'Size'] = float(row['Size'][:len(row['Size']) - 1])
+        # deal with genres
+        genres = row[9].split(';')
+        
+        # deal with size
+        if row[-1] == 'k':
+            size = float(row[4][:-1]) * 0.001
+        else:
+            size = float(row[4][:-1])
 
-    # convert Price to float
-    df.loc[index, 'Price'] = float(row['Price'][len(row['Price']) - 1])
+        # deal with price
+        if row[7] == '0':
+            price = 0
+        else:
+            price = float(row[7][1:])
 
-    # I don't know how to deal with the multiple attribute ...orz
-    # df.loc[index, 'Genres'].split(';')
+        # push into array and split different genres into different entries
+        for genre in genres:
+            # Rating, Reviews, Size, Installs, Price, Genres
+            entry = [row[2], int(row[3]), size, int(row[5][:-1].replace(',','')), price, genre]
+            data.append(entry)
 
-print (df)
+    for outcome in outcomes:
+            outcome_name.append(outcome)
+
+print(data)
