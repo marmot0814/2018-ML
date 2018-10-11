@@ -78,19 +78,18 @@ class Forest:
         return data, target, test_data, test_target
 
     def KFold(self, fold=10, tree_cnt=1):
-        kf = KFold(n_splits=fold, shuffle=True)
+        self.create_data()
+        kf = KFold(n_splits=fold, shuffle=False)
         scores = []
         for train, test in kf.split(self.full_data):
             # use the fold to create_trees
             clfs = self.create_trees([self.full_data[i] for i in train],
                                      [self.full_target[i] for i in train],
                                      tree_cnt)
-
             # test clfs
-            test_data = [self.full_data[i] for i in test]
-            test_target = [self.full_target[i] for i in test]
+            test_data = [self.full_data[i] for i in train]
+            test_target = [self.full_target[i] for i in train]
             predictions = self.predict(clfs, test_data)
-            #for i in range(len(predictions)):
             scores.append(
                 sum([
                     predictions[i] == self.outcome_name[test_target[i]]
@@ -100,7 +99,7 @@ class Forest:
         return (scores, sum(scores) / fold)
 
     def create_trees(self, data, target, tree_cnt=1):
-        self.forest = []
+        forest = []
         for tree_i in range(tree_cnt):
             # handle partial data for current tree
             tree_sample_index = random.sample([x for x in range(0, len(data))],
@@ -108,18 +107,18 @@ class Forest:
             tree_data = [data[i] for i in tree_sample_index]
             tree_target = [target[i] for i in tree_sample_index]
 
-            # shuffle the data
-            shuffle_index = [x for x in range(0, len(tree_target))]
-            random.shuffle(shuffle_index)
-            tree_data = [x for _, x in sorted(zip(shuffle_index, tree_data))]
-            tree_target = [
-                x for _, x in sorted(zip(shuffle_index, tree_target))
-            ]
+            # # shuffle the data
+            # shuffle_index = [x for x in range(0, len(tree_target))]
+            # random.shuffle(shuffle_index)
+            # tree_data = [x for _, x in sorted(zip(shuffle_index, tree_data))]
+            # tree_target = [
+            #     x for _, x in sorted(zip(shuffle_index, tree_target))
+            # ]
 
             # build Tree
             clf = tree.DecisionTreeClassifier(criterion='entropy')
             clf = clf.fit(tree_data, tree_target)
-            self.forest.append(clf)
+            forest.append(clf)
             # export dot file
             with open("dataOutput_{}.dot".format(tree_i), 'w') as f:
                 f = tree.export_graphviz(
@@ -127,15 +126,15 @@ class Forest:
                     feature_names=self.headers,
                     class_names=self.outcome_name,
                     out_file=f)
-        return self.forest
+        return forest
 
     def predict(self, forest, input_data):
-        vote = [0, 0, 0]
         predictions = []
         try:
             for data_i in range(len(input_data)):
+                vote = [0, 0, 0]
                 for tree in forest:
-                    vote[tree.predict(input_data)[data_i]] += 1
+                    vote[tree.predict([input_data[data_i]])[0]] += 1
                 prediction = [i for i, j in enumerate(vote) if j == max(vote)]
                 predictions.append(self.outcome_name[prediction[0]])
             return predictions
@@ -149,8 +148,8 @@ data, target, test_data, test_target = forest.create_data()
 scores, avg_score = forest.KFold(10)
 print(scores)
 print(avg_score)
-#clfs = forest.create_trees(data, target)
-#print(forest.predict(clfs, [[5.1, 3.5, 1.4, 0.2]]))
+clfs = forest.create_trees(data, target)
+print(forest.predict(clfs, [[5.1, 3.5, 1.4, 0.2]]))
 
 # K fold validation
 # scores = cross_val_score(clf, data, target, cv=5, scoring='accuracy')
