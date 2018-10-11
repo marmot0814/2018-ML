@@ -1,3 +1,2 @@
-/_\d{1}\.dot$/
-/Tree_\d{1}\.pdf$/
+dataOutput_*.dot
 tempCodeRunnerFile.py
