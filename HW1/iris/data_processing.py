@@ -2,21 +2,22 @@ import csv, wget, random, os, math
 from sklearn.feature_extraction import DictVectorizer
 from sklearn import preprocessing, tree
 from sklearn.externals.six import StringIO
-from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.model_selection import cross_val_score, train_test_split, KFold
 
 
 # Read csv file and put feathers in a list of dict and list of class label
 class Forest:
 
-    def __init__(self, dataname):
-        self.dataname = dataname
-        if not os.path.exists(dataname):
-            self.fetch_data()
-
-    def fetch_data(
+    def __init__(
             self,
+            dataname,
             url="https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data",
     ):
+        self.dataname = dataname
+        if not os.path.exists(dataname):
+            self.fetch_data(url)
+
+    def fetch_data(self, url):
         filename = self.dataname
         tmp_file = wget.download(url)
         label = "sepal length,sepal width,petal length,petal width,outcome\n"
@@ -35,7 +36,7 @@ class Forest:
             file.write(label + filtered)
         os.rename(filename, "data.csv")
 
-    def create_data(self, train_test_ratio
+    def create_data(self, train_test_ratio=7
                    ):  # if train_test_ratio = 7, then train:test = 7:3
         allData = open(self.dataname, 'r')
         reader = csv.reader(allData)
@@ -67,52 +68,45 @@ class Forest:
             for outcome in outcomes:
                 outcome_name.append(outcome)
             self.outcome_name = outcome_name
-
+        self.full_data = data
+        self.full_target = target
         random_state = random.randint(0, 99999)
-        self.data, self.test_data = train_test_split(
-            data, random_state=random_state)
-        self.target, self.test_target = train_test_split(
+        data, test_data = train_test_split(data, random_state=random_state)
+        target, test_target = train_test_split(
             target, random_state=random_state)
 
-    def Kfold(self, fold):
-        pass
+        return data, target, test_data, test_target
 
-    def create_trees(self, tree_cnt, train_test_ratio):
-        self.create_data(train_test_ratio)
-        # allData = open(self.dataname, 'r')
-        # reader = csv.reader(allData)
+    def KFold(self, fold=10, tree_cnt=1):
+        kf = KFold(n_splits=fold, shuffle=True)
+        scores = []
+        for train, test in kf.split(self.full_data):
+            # use the fold to create_trees
+            clfs = self.create_trees([self.full_data[i] for i in train],
+                                     [self.full_target[i] for i in train],
+                                     tree_cnt)
 
-        # # data headers
-        # headers = next(reader)[0:4]
+            # test clfs
+            test_data = [self.full_data[i] for i in test]
+            test_target = [self.full_target[i] for i in test]
+            predictions = self.predict(clfs, test_data)
+            #for i in range(len(predictions)):
+            scores.append(
+                sum([
+                    predictions[i] == self.outcome_name[test_target[i]]
+                    for i in range(len(predictions))
+                ]) / len(predictions))
 
-        # # feature
-        # data = []
+        return (scores, sum(scores) / fold)
 
-        # #label
-        # target = []  # Y
-        # outcomes = {}  # classes
-
-        # # construct data and target
-        # for row in reader:
-        #     if outcomes.get(row[-1]) == None:
-        #         outcomes[row[-1]] = len(outcomes)
-
-        #     target.append(outcomes[row[-1]])
-
-        #     col = []
-        #     for i in range(0, len(row) - 1):
-        #         col.append(float(row[i]))
-        #     data.append(col)
-
-        # create trees
+    def create_trees(self, data, target, tree_cnt=1):
         self.forest = []
         for tree_i in range(tree_cnt):
             # handle partial data for current tree
-            tree_sample_index = random.sample(
-                [x for x in range(0, len(self.data))],
-                math.ceil(0.7 * len(self.data)))
-            tree_data = [self.data[i] for i in tree_sample_index]
-            tree_target = [self.target[i] for i in tree_sample_index]
+            tree_sample_index = random.sample([x for x in range(0, len(data))],
+                                              math.ceil(0.7 * len(data)))
+            tree_data = [data[i] for i in tree_sample_index]
+            tree_target = [target[i] for i in tree_sample_index]
 
             # shuffle the data
             shuffle_index = [x for x in range(0, len(tree_target))]
@@ -121,11 +115,6 @@ class Forest:
             tree_target = [
                 x for _, x in sorted(zip(shuffle_index, tree_target))
             ]
-            # generate outcome_name
-            # outcome_name = []
-            # for outcome in outcomes:
-            #     outcome_name.append(outcome)
-            # self.outcome_name = outcome_name
 
             # build Tree
             clf = tree.DecisionTreeClassifier(criterion='entropy')
@@ -138,27 +127,31 @@ class Forest:
                     feature_names=self.headers,
                     class_names=self.outcome_name,
                     out_file=f)
+        return self.forest
 
-    def predict(self, input_data):
+    def predict(self, forest, input_data):
         vote = [0, 0, 0]
+        predictions = []
         try:
-            for tree in self.forest:
-                vote[tree.predict(input_data)[0]] += 1
-            prediction = [i for i, j in enumerate(vote) if j == max(vote)]
-            if len(prediction) == 1:
-                print(self.outcome_name[prediction[0]])
-            else:
-                print("Ties:")
-                for candicate in prediction:
-                    print(self.outcome_name[candicate])
+            for data_i in range(len(input_data)):
+                for tree in forest:
+                    vote[tree.predict(input_data)[data_i]] += 1
+                prediction = [i for i, j in enumerate(vote) if j == max(vote)]
+                predictions.append(self.outcome_name[prediction[0]])
+            return predictions
         except AttributeError:
             print(
                 "*** Error: Please run create_trees() before predicting! ***")
 
 
 forest = Forest('data.csv')
-forest.create_trees(4, 7)
-forest.predict([[5.1, 3.5, 1.4, 0.2]])
+data, target, test_data, test_target = forest.create_data()
+scores, avg_score = forest.KFold(10)
+print(scores)
+print(avg_score)
+#clfs = forest.create_trees(data, target)
+#print(forest.predict(clfs, [[5.1, 3.5, 1.4, 0.2]]))
+
 # K fold validation
 # scores = cross_val_score(clf, data, target, cv=5, scoring='accuracy')
 # print(scores)
