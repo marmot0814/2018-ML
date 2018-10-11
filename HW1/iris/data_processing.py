@@ -87,8 +87,8 @@ class Forest:
                                      [self.full_target[i] for i in train],
                                      tree_cnt)
             # test clfs
-            test_data = [self.full_data[i] for i in train]
-            test_target = [self.full_target[i] for i in train]
+            test_data = [self.full_data[i] for i in test]
+            test_target = [self.full_target[i] for i in test]
             predictions = self.predict(clfs, test_data)
             scores.append(
                 sum([
@@ -146,12 +146,7 @@ class Forest:
 forest = Forest('data.csv')
 data, target, test_data, test_target = forest.create_data()
 scores, avg_score = forest.KFold(10)
-print(scores)
+#print(scores)
 print(avg_score)
 clfs = forest.create_trees(data, target)
 print(forest.predict(clfs, [[5.1, 3.5, 1.4, 0.2]]))
-
-# K fold validation
-# scores = cross_val_score(clf, data, target, cv=5, scoring='accuracy')
-# print(scores)
-# print(scores.mean())
