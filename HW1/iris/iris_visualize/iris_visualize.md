@@ -1,0 +1,5 @@
+- amount of every kind of target
+	- use a pie chart
+- cause all the freatures are continuous data
+	- we use bar charts for cumulative data in particular range
+	- and use vertical line for mean and var
