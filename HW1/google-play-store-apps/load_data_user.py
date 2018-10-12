@@ -1,26 +1,21 @@
 import csv
+import pandas as pd
 
-attributes = ['App', 'Sentiment_Polarity', 'Sentiment_Subjectivity']
-outcomes = ['Positive', 'Negative', 'Neutral']
-data = []
+data = pd.read_csv('googleplaystore_user_reviews.csv')
 
-with open('googleplaystore_user_reviews.csv', 'r') as csvfile:
+# Parse App Sentiment Sentiment_Polarity Sentiment_Subjectivity
+data = data.iloc[:,[0,2,3,4]]
 
-    rows = csv.reader(csvfile)
-    next(rows)
+# drop nan if any
+data.dropna(axis=0,how='any')
 
-    for row in rows:
-        
-        # extract illegal entries
-        if row[0] != row[0] or row[3] != row[3] or row[4] != row[4] :
-            continue
-        if row[2] != 'Positive' and row[2] != 'Negative' and row[2] != 'Neutral' :
-            continue
+# drop null if any
+null_data = data.isnull()
+result = null_data.iloc[:,0]
+for i in range(1,4):
+    result = result | null_data.iloc[:,i]
+result = ~result
+data = data.loc[result,:]
 
-        # keep 3 attributes
-        row = [row[0], float(row[3]), float(row[4])]
-
-        # push into array
-        data.append(row)
-
-print(data)
+# to csv
+data.to_csv('new_googleplaystore_user_reviews.csv',index=False)

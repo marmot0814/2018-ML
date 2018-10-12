@@ -82,6 +82,16 @@ for target_outcome in target_outcomes:
     target_name[target_outcomes[target_outcome]] = target_outcome
     
 
+<<<<<<< HEAD:HW1/google-play-store-apps/load_data.py
+print ("Data Name")
+print (data_name)
+print ("Data")
+print (data)
+print ("Target Name")
+print (target_name)
+print ("target")
+print (target)
+=======
 # print ("Data Name")
 # print (data_name)
 # print ("Data")
@@ -110,3 +120,4 @@ for index in range(len(data)):
     line += '\n';
     f.write(line)
 
+>>>>>>> baacecb5fa8330f20ffdde4b6d137997abae9a57:HW1/google-play-store-apps/purify_googleplaystore.py
