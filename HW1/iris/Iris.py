@@ -4,8 +4,8 @@ forest = Forest(
     'data.csv',
     label="sepal length,sepal width,petal length,petal width,outcome\n")
 data, target, test_data, test_target = forest.create_data()
-scores, avg_score = forest.KFold(10)
-#print(scores)
+scores, avg_score = forest.KFold(4)
+print(scores)
 print(avg_score)
 clfs = forest.create_trees(data, target, tree_cnt=5)
 print(forest.predict(clfs, [[5.1, 3.5, 1.4, 0.2]]))

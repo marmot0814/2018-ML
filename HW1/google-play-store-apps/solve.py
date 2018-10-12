@@ -9,4 +9,3 @@ scores, avg_score = forest.KFold(5)
 print (scores)
 print (avg_score)
 
-# clfs = forest.create_trees(data, target, tree_cnt=5)
