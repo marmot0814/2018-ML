@@ -131,7 +131,7 @@ class Forest:
         predictions = []
         try:
             for data_i in range(len(input_data)):
-                vote = [0 for x in range(len(outcome_name))]
+                vote = [0 for x in range(len(self.outcome_name))]
                 for tree in forest:
                     vote[tree.predict([input_data[data_i]])[0]] += 1
                 prediction = [i for i, j in enumerate(vote) if j == max(vote)]

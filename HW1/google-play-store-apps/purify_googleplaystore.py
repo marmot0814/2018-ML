@@ -96,7 +96,7 @@ line = ""
 for feature in data_name:
     line += feature
     line += ','
-line += "outcome,"
+line += "outcome"
 line += '\n'
 f.write(line)
 for index in range(len(data)):
