@@ -3,6 +3,7 @@ from sklearn.feature_extraction import DictVectorizer
 from sklearn import preprocessing, tree
 from sklearn.externals.six import StringIO
 from sklearn.model_selection import cross_val_score, train_test_split, KFold
+from sklearn.utils import shuffle
 
 
 # Read csv file and put feath3ers in a list of dict and list of class label
@@ -43,7 +44,7 @@ class Forest:
         reader = csv.reader(allData)
 
         # data headers
-        self.headers = next(reader)[:-1]
+        self.headers = next(reader)[0:4]
 
         # feature
         data = []
@@ -69,6 +70,11 @@ class Forest:
             for outcome in outcomes:
                 outcome_name[outcomes[outcome]] = outcome
             self.outcome_name = outcome_name
+
+        # shuffle data
+        data, target = shuffle(data, target)
+
+        # full_data for Validation
         self.full_data = data
         self.full_target = target
         random_state = random.randint(0, 99999)
@@ -108,14 +114,6 @@ class Forest:
             tree_data = [data[i] for i in tree_sample_index]
             tree_target = [target[i] for i in tree_sample_index]
 
-            # # shuffle the data
-            # shuffle_index = [x for x in range(0, len(tree_target))]
-            # random.shuffle(shuffle_index)
-            # tree_data = [x for _, x in sorted(zip(shuffle_index, tree_data))]
-            # tree_target = [
-            #     x for _, x in sorted(zip(shuffle_index, tree_target))
-            # ]
-
             # build Tree
             clf = tree.DecisionTreeClassifier(criterion='entropy')
             clf = clf.fit(tree_data, tree_target)
@@ -133,7 +131,7 @@ class Forest:
         predictions = []
         try:
             for data_i in range(len(input_data)):
-                vote = [0 for x in range(len(self.outcome_name))]
+                vote = [0, 0, 0]
                 for tree in forest:
                     vote[tree.predict([input_data[data_i]])[0]] += 1
                 prediction = [i for i, j in enumerate(vote) if j == max(vote)]
