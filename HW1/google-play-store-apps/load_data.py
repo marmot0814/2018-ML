@@ -1,55 +1,92 @@
-# create data from googleplaystore.csv
 import csv
+from sklearn import preprocessing
+from sklearn import tree
+from sklearn.feature_extraction import DictVectorizer
+import numpy as np
 
-attributes = ['Rating', 'Reviews', 'Size', 'Installs', 'Price', 'Genres']
-outcomes = {} # Category, row[1]
-outcome_name = []
-data = []
+csv_file = open('googleplaystore.csv')
+reader = csv.reader(csv_file)
+headers = next(reader)
+headers_dict = {}
+for index in range(len(headers)):
+    headers_dict[headers[index]] = index
 
-with open('googleplaystore.csv', 'r') as csvfile:
+target = []
+target_outcomes = {}
 
-    rows = csv.reader(csvfile)
-    next(rows)
+data_dict = []
 
-    for row in rows:
+for row in reader:
+    
+    # A component in the data_dict list
+    data_dict_row = {}    
+    
+    # Clear the trash
+    if row[headers_dict['Category']] == '1.9':
+        continue
+   
+    # Clear NaN
+    if row[headers_dict['Rating']] == 'NaN':
+        continue
 
-        # extract illegal entries
-        # if Rating is NaN, then drop it
-        if row[2] == 'NaN':
-            continue
-        # only a trash data
-        if row[1] == '1.9':
-            continue
-        # if size isn't float
-        if row[4][0] == 'V':
-            continue
+    # Clear Varies with device
+    if row[headers_dict['Size']][0] == 'V':
+        continue
 
-        # construct possible outcomes
-        if outcomes.get(row[1]) == None:
-            outcomes[row[1]] = len(outcomes)
+    # Rating
+    data_dict_row['Rating'] = float(row[headers_dict['Rating']])
 
-        # deal with genres
-        genres = row[9].split(';')
-        
-        # deal with size
-        if row[-1] == 'k':
-            size = float(row[4][:-1]) * 0.001
-        else:
-            size = float(row[4][:-1])
+    # Reviews
+    data_dict_row['Reviews'] = int(row[headers_dict['Reviews']])
 
-        # deal with price
-        if row[7] == '0':
-            price = 0
-        else:
-            price = float(row[7][1:])
+    # Size
 
-        # push into array and split different genres into different entries
-        for genre in genres:
-            # Rating, Reviews, Size, Installs, Price, Genres
-            entry = [row[2], int(row[3]), size, int(row[5][:-1].replace(',','')), price, genre]
-            data.append(entry)
+    data_dict_row['Size'] = float(row[headers_dict['Size']][:-1])
+    if row[headers_dict['Size']][-1] == 'M':
+        data_dict_row['Size'] *= 1000
 
-    for outcome in outcomes:
-            outcome_name.append(outcome)
+    # Installs
+    data_dict_row['Installs'] = int(row[headers_dict['Installs']][:-1].replace(',', ''))
 
-print(data)
+    # Price
+    if row[headers_dict['Price']][0] == '$':
+        row[headers_dict['Price']] = row[headers_dict['Price']][1:]
+    data_dict_row['Price'] = float(row[headers_dict['Price']])
+
+    # Genres
+    Genres = row[headers_dict['Genres']].split(';')
+    for genres in Genres:
+        data_dict_row[genres] = True
+
+    # target
+    if target_outcomes.get(row[1]) == None:
+        target_outcomes[row[1]] = len(target_outcomes)
+    target.append(target_outcomes[row[1]])
+
+    # data
+    data_dict.append(data_dict_row)
+
+# Data
+vec = DictVectorizer()
+data = vec.fit_transform(data_dict).toarray()
+
+# Data Name
+data_name = vec.get_feature_names()
+
+# Target
+target = np.asarray(target)
+
+#Target Name
+target_name = [0 for x in range(len(target_outcomes))]
+for target_outcome in target_outcomes:
+    target_name[target_outcomes[target_outcome]] = target_outcome
+    
+
+print ("Data Name")
+print (data_name)
+print ("Data")
+print (data)
+print ("Target Name")
+print (target_name)
+print ("target")
+print (target)
