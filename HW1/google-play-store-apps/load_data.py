@@ -82,13 +82,31 @@ for target_outcome in target_outcomes:
     target_name[target_outcomes[target_outcome]] = target_outcome
     
 
-print ("Data Name")
-print (data_name)
-print ("Data")
-print (data)
-print ("Target Name")
-print (target_name)
-print ("target")
-print (target)
+# print ("Data Name")
+# print (data_name)
+# print ("Data")
+# print (data)
+# print ("Target Name")
+# print (target_name)
+# print ("target")
+# print (target)
 
+# output csv file
+f = open("data.csv", "w")
+line = ""
+for feature in data_name:
+    line += feature
+    line += ','
+line += "outcome,"
+line += '\n'
+f.write(line)
+for index in range(len(data)):
+    row = data[index]
+    line = ""
+    for item in row:
+        line += str(item)
+        line += ','
+    line += str(target_name[target[index]])
+    line += '\n';
+    f.write(line)
 
