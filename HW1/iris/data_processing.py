@@ -64,9 +64,9 @@ class Forest:
             data.append(col)
 
             # generate outcome_name
-            outcome_name = []
+            outcome_name = [0 for x in range(len(outcomes))]
             for outcome in outcomes:
-                outcome_name.append(outcome)
+                outcome_name[outcomes[outcome]] = outcome
             self.outcome_name = outcome_name
         self.full_data = data
         self.full_target = target
