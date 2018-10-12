@@ -17,14 +17,14 @@ target_outcomes = {}
 data_dict = []
 
 for row in reader:
-    
+
     # A component in the data_dict list
-    data_dict_row = {}    
-    
+    data_dict_row = {}
+
     # Clear the trash
     if row[headers_dict['Category']] == '1.9':
         continue
-   
+
     # Clear NaN
     if row[headers_dict['Rating']] == 'NaN':
         continue
@@ -80,18 +80,7 @@ target = np.asarray(target)
 target_name = [0 for x in range(len(target_outcomes))]
 for target_outcome in target_outcomes:
     target_name[target_outcomes[target_outcome]] = target_outcome
-    
 
-<<<<<<< HEAD:HW1/google-play-store-apps/load_data.py
-print ("Data Name")
-print (data_name)
-print ("Data")
-print (data)
-print ("Target Name")
-print (target_name)
-print ("target")
-print (target)
-=======
 # print ("Data Name")
 # print (data_name)
 # print ("Data")
@@ -119,5 +108,3 @@ for index in range(len(data)):
     line += str(target_name[target[index]])
     line += '\n';
     f.write(line)
-
->>>>>>> baacecb5fa8330f20ffdde4b6d137997abae9a57:HW1/google-play-store-apps/purify_googleplaystore.py
