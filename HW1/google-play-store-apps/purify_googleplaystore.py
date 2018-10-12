@@ -92,7 +92,7 @@ for target_outcome in target_outcomes:
 # print (target)
 
 # output csv file
-f = open("data.csv", "w")
+f = open("new_googleplaystore.csv", "w")
 line = ""
 for feature in data_name:
     line += feature
