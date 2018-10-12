@@ -5,22 +5,23 @@ from sklearn.externals.six import StringIO
 from sklearn.model_selection import cross_val_score, train_test_split, KFold
 
 
-# Read csv file and put feathers in a list of dict and list of class label
+# Read csv file and put feath3ers in a list of dict and list of class label
 class Forest:
 
     def __init__(
             self,
             dataname,
             url="https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data",
-    ):
+            label=""):
         self.dataname = dataname
+        self.label = label
         if not os.path.exists(dataname):
             self.fetch_data(url)
 
     def fetch_data(self, url):
         filename = self.dataname
         tmp_file = wget.download(url)
-        label = "sepal length,sepal width,petal length,petal width,outcome\n"
+
         # read data to tmp
         with open(tmp_file, 'r') as file:
             tmp = file.read()
@@ -33,7 +34,7 @@ class Forest:
             if line.strip():
                 filtered += line + '\n'
         with open(filename, 'w+') as file:
-            file.write(label + filtered)
+            file.write(self.label + filtered)
         os.rename(filename, "data.csv")
 
     def create_data(self, train_test_ratio=7
@@ -141,12 +142,3 @@ class Forest:
         except AttributeError:
             print(
                 "*** Error: Please run create_trees() before predicting! ***")
-
-
-forest = Forest('data.csv')
-data, target, test_data, test_target = forest.create_data()
-scores, avg_score = forest.KFold(10)
-#print(scores)
-print(avg_score)
-clfs = forest.create_trees(data, target)
-print(forest.predict(clfs, [[5.1, 3.5, 1.4, 0.2]]))
