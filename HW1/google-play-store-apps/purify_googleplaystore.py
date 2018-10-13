@@ -55,10 +55,11 @@ for row in reader:
     # Genres
     Genres = row[headers_dict['Genres']].split(';')
     for genres in Genres:
-        data_dict_row[genres] = True
+        data_dict_row['Genres=' + genres] = True
 
     # target
-    target.append(int(float(row[headers_dict['Rating']]) * 10))
+    # target.append(int(int(float(row[headers_dict['Rating']]) * 2 + 0.5) / 2 * 2))
+    target.append(int(float(row[headers_dict['Rating']]) + 0.5))
 
     # data
     data_dict.append(data_dict_row)
@@ -74,7 +75,7 @@ data_name = vec.get_feature_names()
 target = np.asarray(target)
 
 #Target Name
-target_name = [str(x / 10) for x in range(51)]
+target_name = [str(x) for x in range(6)]
 
 print ("Data Name")
 print (data_name)
