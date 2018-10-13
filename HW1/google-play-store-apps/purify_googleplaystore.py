@@ -33,14 +33,13 @@ for row in reader:
     if row[headers_dict['Size']][0] == 'V':
         continue
 
-    # Rating
-    data_dict_row['Rating'] = float(row[headers_dict['Rating']])
+    # Category
+    data_dict_row['Category'] = row[headers_dict['Category']]
 
     # Reviews
     data_dict_row['Reviews'] = int(row[headers_dict['Reviews']])
 
     # Size
-
     data_dict_row['Size'] = float(row[headers_dict['Size']][:-1])
     if row[headers_dict['Size']][-1] == 'M':
         data_dict_row['Size'] *= 1000
@@ -59,9 +58,7 @@ for row in reader:
         data_dict_row[genres] = True
 
     # target
-    if target_outcomes.get(row[1]) == None:
-        target_outcomes[row[1]] = len(target_outcomes)
-    target.append(target_outcomes[row[1]])
+    target.append(int(float(row[headers_dict['Rating']]) * 10))
 
     # data
     data_dict.append(data_dict_row)
@@ -77,18 +74,16 @@ data_name = vec.get_feature_names()
 target = np.asarray(target)
 
 #Target Name
-target_name = [0 for x in range(len(target_outcomes))]
-for target_outcome in target_outcomes:
-    target_name[target_outcomes[target_outcome]] = target_outcome
+target_name = [str(x / 10) for x in range(51)]
 
-# print ("Data Name")
-# print (data_name)
-# print ("Data")
-# print (data)
-# print ("Target Name")
-# print (target_name)
-# print ("target")
-# print (target)
+print ("Data Name")
+print (data_name)
+print ("Data")
+print (data)
+print ("Target Name")
+print (target_name)
+print ("target")
+print (target)
 
 # output csv file
 f = open("new_googleplaystore.csv", "w")
@@ -105,6 +100,6 @@ for index in range(len(data)):
     for item in row:
         line += str(item)
         line += ','
-    line += str(target_name[target[index]])
+    line += target_name[target[index]]
     line += '\n';
     f.write(line)
