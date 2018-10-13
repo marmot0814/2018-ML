@@ -22,8 +22,8 @@ for row in reader:
     data_dict_row = {}
 
     # Clear the trash
-    # if row[headers_dict['Category']] == '1.9':
-    #     continue
+    if row[headers_dict['Category']] == '1.9':
+        continue
 
     # Clear NaN
     if row[headers_dict['Rating']] == '':
