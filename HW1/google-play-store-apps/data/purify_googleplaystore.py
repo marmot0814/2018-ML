@@ -4,7 +4,7 @@ from sklearn import tree
 from sklearn.feature_extraction import DictVectorizer
 import numpy as np
 
-csv_file = open('googleplaystore.csv')
+csv_file = open('merged_googleplaystore.csv')
 reader = csv.reader(csv_file)
 headers = next(reader)
 headers_dict = {}
@@ -15,18 +15,18 @@ target = []
 target_outcomes = {}
 
 data_dict = []
-
+index = 0
 for row in reader:
 
     # A component in the data_dict list
     data_dict_row = {}
 
     # Clear the trash
-    if row[headers_dict['Category']] == '1.9':
-        continue
+    # if row[headers_dict['Category']] == '1.9':
+    #     continue
 
     # Clear NaN
-    if row[headers_dict['Rating']] == 'NaN':
+    if row[headers_dict['Rating']] == '':
         continue
 
     # Clear Varies with device
@@ -47,6 +47,12 @@ for row in reader:
     # Installs
     data_dict_row['Installs'] = int(row[headers_dict['Installs']][:-1].replace(',', ''))
 
+    # comment_mean
+    data_dict_row['comment_mean'] = float(row[headers_dict['comment_mean']])
+
+    # comment_count
+    data_dict_row['comment_count'] = float(row[headers_dict['comment_count']])
+
     # Price
     if row[headers_dict['Price']][0] == '$':
         row[headers_dict['Price']] = row[headers_dict['Price']][1:]
@@ -63,7 +69,7 @@ for row in reader:
 
     # data
     data_dict.append(data_dict_row)
-
+    index = index + 1
 # Data
 vec = DictVectorizer()
 data = vec.fit_transform(data_dict).toarray()
