@@ -4,6 +4,7 @@ from sklearn import preprocessing, tree
 from sklearn.externals.six import StringIO
 from sklearn.model_selection import cross_val_score, train_test_split, KFold
 from sklearn.utils import shuffle
+import pandas as pd
 
 
 # Read csv file and put feath3ers in a list of dict and list of class label
@@ -107,12 +108,23 @@ class Forest:
 
     def create_trees(self, data, target, tree_cnt=1):
         forest = []
+        self.picked_column = []
         for tree_i in range(tree_cnt):
-            # handle partial data for current tree
-            tree_sample_index = random.sample([x for x in range(0, len(data))],
-                                              math.ceil(0.7 * len(data)))
-            tree_data = [data[i] for i in tree_sample_index]
-            tree_target = [target[i] for i in tree_sample_index]
+            # handle partial feature for current tree
+            #tree_sample_index = random.sample([x for x in range(0, len(data))],
+            #                                  math.ceil(0.7 * len(data)))
+            # picked_column = random.sample(
+            #     [x for x in range(0, len(self.headers))],
+            #     random.randint(1, lensself.headers))s
+            picked_column = [0, 1, 2, 3]
+            picked_column.sort()
+            self.picked_column.append(picked_column)
+            headers = [self.headers[i] for i in picked_column]
+            tree_data = []
+            for i in range(len(data)):
+                data_row = [data[i][j] for j in picked_column]
+                tree_data.append(data_row)
+            tree_target = target
 
             # build Tree
             clf = tree.DecisionTreeClassifier(criterion='entropy')
@@ -122,7 +134,7 @@ class Forest:
             with open("dataOutput_{}.dot".format(tree_i), 'w') as f:
                 f = tree.export_graphviz(
                     clf,
-                    feature_names=self.headers,
+                    feature_names=headers,
                     class_names=self.outcome_name,
                     out_file=f)
         return forest
@@ -132,8 +144,13 @@ class Forest:
         try:
             for data_i in range(len(input_data)):
                 vote = [0 for x in range(len(self.outcome_name))]
-                for tree in forest:
-                    vote[tree.predict([input_data[data_i]])[0]] += 1
+                for i, tree in enumerate(forest):
+                    # handle partial feature in the forest
+                    partial_featured_data = [
+                        input_data[data_i][j] for j in self.picked_column[i]
+                    ]
+                    vote[tree.predict([partial_featured_data])[0]] += 1
+                    #print(vote)
                 prediction = [i for i, j in enumerate(vote) if j == max(vote)]
                 predictions.append(self.outcome_name[prediction[0]])
             return predictions
