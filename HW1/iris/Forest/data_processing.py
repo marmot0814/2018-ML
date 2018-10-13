@@ -86,6 +86,16 @@ class Forest:
         return data, target, test_data, test_target
 
     def KFold(self, fold=10, tree_cnt=1):
+        # resubstitution validation
+        if (fold == 1):
+            clf = self.create_trees(self.full_data, self.full_target, tree_cnt)
+            predictions = self.predict(clf, self.full_data)
+            score = sum([
+                predictions[i] == self.outcome_name[self.full_target[i]]
+                for i in range(len(predictions))
+            ]) / len(predictions)
+            return score, score / fold
+
         self.create_data()
         kf = KFold(n_splits=fold, shuffle=False)
         scores = []
