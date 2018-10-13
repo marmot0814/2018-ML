@@ -1,0 +1,3 @@
+#! /bin/bash
+
+dot -Tpdf dataOutput_$1.dot -o Tree_$1.pdf
