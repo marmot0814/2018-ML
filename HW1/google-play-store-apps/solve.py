@@ -5,7 +5,6 @@ from data_processing import Forest
 forest = Forest('new_googleplaystore.csv')
 data, target, test_data, test_target = forest.create_data()
 
-scores, avg_score = forest.KFold(5)
-print (scores)
-print (avg_score)
-
+scores, avg_score = forest.KFold(5, tree_cnt=10)
+print(scores)
+print(avg_score)

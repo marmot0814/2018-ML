@@ -109,15 +109,20 @@ class Forest:
     def create_trees(self, data, target, tree_cnt=1):
         forest = []
         self.picked_column = []
+        # handle partial feature for current tree
         for tree_i in range(tree_cnt):
-            # handle partial feature for current tree
             #tree_sample_index = random.sample([x for x in range(0, len(data))],
             #                                  math.ceil(0.7 * len(data)))
-            picked_column = random.sample(
-                [x for x in range(0, len(self.headers))],
-                random.randint(1, len(self.headers)))
-            picked_column.sort()
-            self.picked_column.append(picked_column)
+            if (tree_cnt != 1):
+                picked_column = random.sample(
+                    [x for x in range(0, len(self.headers))],
+                    random.randint(1, len(self.headers)))
+                picked_column.sort()
+                self.picked_column.append(picked_column)
+            else:
+                # pick all column
+                picked_column = [i for i, _ in enumerate(self.headers)]
+                self.picked_column.append(picked_column)
             headers = [self.headers[i] for i in picked_column]
             tree_data = []
             for i in range(len(data)):
