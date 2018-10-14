@@ -5,7 +5,7 @@ from sklearn.externals.six import StringIO
 from sklearn.model_selection import cross_val_score, train_test_split, KFold
 from sklearn.utils import shuffle
 import pandas as pd
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, classification_report
 import seaborn as sn
 import pandas as pd
 import numpy as np
@@ -102,7 +102,10 @@ class Forest:
 
             pred = predictions
             true = [self.outcome_name[self.full_target[i]] for i in range(len(predictions))]
+
             C = confusion_matrix(true, pred, labels=self.outcome_name)
+            report = classification_report(true, pred, target_names = self.outcome_name)
+            print (report)
             df_cm = pd.DataFrame(C, index = self.outcome_name, columns = self.outcome_name)
             plt.figure(figsize = (10,7))
             sn.heatmap(df_cm, annot=True,  fmt='g', cmap='Blues')
@@ -114,7 +117,8 @@ class Forest:
         kf = KFold(n_splits=fold, shuffle=False)
         scores = []
     
-        C = np.zeros((len(self.outcome_name),len(self.outcome_name)))
+        pred = []
+        true = []
 
         for train, test in kf.split(self.full_data):
             # use the fold to create_trees
@@ -126,16 +130,19 @@ class Forest:
             test_target = [self.full_target[i] for i in test]
             predictions = self.predict(clfs, test_data)
 
-            pred = predictions
-            true = [self.outcome_name[test_target[i]] for i in range(len(test_target))]
-            C += confusion_matrix(true, pred, labels=self.outcome_name)
+            pred += predictions
+            true += [self.outcome_name[test_target[i]] for i in range(len(test_target))]
 
             scores.append(
                 sum([
                     predictions[i] == self.outcome_name[test_target[i]]
                     for i in range(len(predictions))
                 ]) / len(predictions))
+        
+        report = classification_report(true, pred, target_names = self.outcome_name)
+        print (report)
 
+        C = confusion_matrix(true, pred, labels=self.outcome_name)
         df_cm = pd.DataFrame(C, index = self.outcome_name, columns = self.outcome_name)
         plt.figure(figsize = (10,7))
         sn.heatmap(df_cm, annot=True,  fmt='g', cmap='Blues')
