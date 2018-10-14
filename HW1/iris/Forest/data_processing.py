@@ -114,7 +114,7 @@ class Forest:
         kf = KFold(n_splits=fold, shuffle=False)
         scores = []
     
-        C = np.zeros((5,5))
+        C = np.zeros((len(self.outcome_name),len(self.outcome_name)))
 
         for train, test in kf.split(self.full_data):
             # use the fold to create_trees
