@@ -5,6 +5,11 @@ from sklearn.externals.six import StringIO
 from sklearn.model_selection import cross_val_score, train_test_split, KFold
 from sklearn.utils import shuffle
 import pandas as pd
+from sklearn.metrics import confusion_matrix
+import seaborn as sn
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 # Read csv file and put feath3ers in a list of dict and list of class label
@@ -94,11 +99,23 @@ class Forest:
                 predictions[i] == self.outcome_name[self.full_target[i]]
                 for i in range(len(predictions))
             ]) / len(predictions)
+
+            pred = predictions
+            true = [self.outcome_name[self.full_target[i]] for i in range(len(predictions))]
+            C = confusion_matrix(true, pred, labels=self.outcome_name)
+            df_cm = pd.DataFrame(C, index = self.outcome_name, columns = self.outcome_name)
+            plt.figure(figsize = (10,7))
+            sn.heatmap(df_cm, annot=True,  fmt='g', cmap='Blues')
+            plt.show() 
+
             return score, score / fold
 
         self.create_data()
         kf = KFold(n_splits=fold, shuffle=False)
         scores = []
+    
+        C = np.zeros((5,5))
+
         for train, test in kf.split(self.full_data):
             # use the fold to create_trees
             clfs = self.create_trees([self.full_data[i] for i in train],
@@ -108,12 +125,21 @@ class Forest:
             test_data = [self.full_data[i] for i in test]
             test_target = [self.full_target[i] for i in test]
             predictions = self.predict(clfs, test_data)
+
+            pred = predictions
+            true = [self.outcome_name[test_target[i]] for i in range(len(test_target))]
+            C += confusion_matrix(true, pred, labels=self.outcome_name)
+
             scores.append(
                 sum([
                     predictions[i] == self.outcome_name[test_target[i]]
                     for i in range(len(predictions))
                 ]) / len(predictions))
 
+        df_cm = pd.DataFrame(C, index = self.outcome_name, columns = self.outcome_name)
+        plt.figure(figsize = (10,7))
+        sn.heatmap(df_cm, annot=True,  fmt='g', cmap='Blues')
+        plt.show() 
         return (scores, sum(scores) / fold)
 
     def create_trees(self, data, target, tree_cnt=1):
