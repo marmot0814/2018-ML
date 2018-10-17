@@ -13,7 +13,7 @@ def feature_count(i,x,feature,save):
 	y = np.unique(tmp_float)
 	z = [np.sum(tmp_float==j) for j in y]
 	filename = feature+".png" if save is 1 else ""
-	charts.bar(y,z,np.mean(tmp_float),np.var(tmp_float),title=feature,filename=filename)
+	charts.bar(y,z,np.mean(tmp_float),np.sqrt(np.var(tmp_float)),title=feature,filename=filename)
 def main():
 	iris = load_iris()
 	target_count(iris,1)
