@@ -71,7 +71,7 @@ class Kmeans:
         else:
             return None
 
-    def loss(self,):
+    def cost(self,):
         pass
 
     def distance(self, a, b):
