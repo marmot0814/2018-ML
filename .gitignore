@@ -2,3 +2,4 @@ dataOutput_*.dot
 tempCodeRunnerFile.py
 *.pdf
 *.png
+*.pyc
