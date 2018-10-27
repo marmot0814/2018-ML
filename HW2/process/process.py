@@ -1,93 +1,67 @@
 import numpy as np
-import math
 from matplotlib import pyplot as plt
-
 
 class Kmeans:
 
-    def __init__(self, k=3):
-        self.k = k
+    def __init__(self, data, k = 3):
 
-    # data: (all data), label: (unique label only)
-    def data_label(self, data, label):
         self.n = data.shape[0]
-        self.fsize = data.shape[1]  # feature size
-        self.label = label
-        self.clusters = np.zeros(shape=(self.k,
-                                        self.n))  # create array of [k][n]
+        self.k = k
 
         # shuffle data
         indices = np.random.permutation(self.n)
         self.data = np.array(data[indices])
 
-        # initial clustering
-        clusters = np.zeros(shape=(self.k, self.n,
-                                   self.fsize))  # empty clusters
-        centers = np.array(
-            [self.data[i] for i in range(self.k)])  # initial center
-        sizes = np.zeros(self.k, dtype=np.int)  # sizes of centers
-        for i in range(1, self.n):
-            # decide which cluster it belongs to
-            category = 0
-            cost = math.inf
-            for cat_i in range(self.k):
-                cost_i = self.distance(centers[cat_i], self.data[i])
-                if (cost_i < cost):
-                    cost = cost_i
-                    category = cat_i
-            # put it in the cluster
-            clusters[category][sizes[category]] = self.data[i]
-            sizes[category] += 1
+        # initial centers
+        self.centers = np.array([ self.data[i] for i in range(self.k) ])
 
-        return [sizes, clusters]
+        # inital clusters
+        self.clusters = [ np.array([]) for x in range(self.k) ]
 
-    def iter(self, sizes_clusters):
-        sizes = sizes_clusters[0]
-        clusters = sizes_clusters[1]
-        # print(clusters)
-        # calculat means
-        means = np.array(
-            [np.mean(clusters[i][0:sizes[i]], axis=0) for i in range(self.k)])
-        #print(means)
-        new_clusters = np.zeros(shape=(self.k, self.n,
-                                       self.fsize))  # empty clusters
-        new_sizes = np.zeros(self.k, dtype=np.int)  # sizes of centers
+        # iterator
+        while True:
+            stop = self.iterator()
+            self.display()
+            if stop:
+                break;
+
+    def iterator(self):
+
+        # initial 
+        clusters = [ [] for x in range(self.k) ]
+
+        # find the cluster of the data for each one
         for i in range(self.n):
-            # decide which cluster it belongs to
-            category = 0
-            cost = math.inf
-            for cat_i in range(self.k):
-                cost_i = self.distance(means[cat_i], self.data[i])
-                if (cost_i < cost):
-                    cost = cost_i
-                    category = cat_i
-            # put it in the cluster
-            new_clusters[category][new_sizes[category]] = self.data[i]
-            new_sizes[category] += 1
+            clusters[np.argmin(self.distance(self.centers, self.data[i]))].append(self.data[i])
 
-        # compare difference
-        if (not np.array_equal(new_clusters, clusters)):
-            return [new_sizes, new_clusters]
-        else:
-            return None
+        # trans list to numpy array
+        clusters = [ np.array(clusters[i]) for i in range(self.k) ]
 
-    def cost(self,):
-        pass
+        # update centers
+        self.centers = np.array([np.mean( clusters[i], axis = 0) for i in range(self.k) ])
+
+        # swap old and new clusters
+        self.clusters, clusters = clusters, self.clusters
+
+        return all([ np.array_equal(x, y) for x, y in zip(self.clusters, clusters)])
 
     def distance(self, a, b):
-        return np.sum((a - b)**2)
+        return np.sum( (a - b) ** 2, axis = 1)
 
-    def plot(self, sizes_clusters):
-        sizes = sizes_clusters[0]
-        clusters = sizes_clusters[1]
+    def display(self):
         fig, ax = plt.subplots()
         for i in range(self.k):
-            ax.plot([clusters[i][j][0] for j in range(sizes[i])],
-                    [clusters[i][j][1] for j in range(sizes[i])],
-                    marker='o',
-                    linestyle='',
-                    ms=4,
-                    label=['A', 'B', 'C'][i])
-        ax.legend()
+            ax.plot([x[0] for x in self.clusters[i]],
+                    [x[1] for x in self.clusters[i]],
+                     marker = 'o', linestyle='', ms = 4)
+        for i in range(self.k):
+            ax.plot(self.centers[i][0], self.centers[i][1], marker = '+', ms = 10, color = 'r't )
+
         fig.canvas.draw()
-        plt.pause(1)  # give the gui time to process the draw events
+        plt.show()
+
+    def cost(self):
+        pass
+
+
+
