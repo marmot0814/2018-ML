@@ -1,6 +1,7 @@
 import numpy as np
 import time
 import matplotlib
+from mpl_toolkits.mplot3d import Axes3D
 matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
 
@@ -11,7 +12,7 @@ class Kmeans:
 
         self.n = data.shape[0]
         self.k = k
-        self.color = ['purple', 'g', 'b', 'y', 'pink', 'm', 'c', 'black']
+        self.color = ['purple', 'g', 'b', 'y', 'pink', 'm', 'c', 'black', 'lime', 'orange', 'brown', 'grey', '#abd03d', '#298834']
 
         # shuffle data
         indices = np.random.permutation(self.n)
@@ -21,8 +22,11 @@ class Kmeans:
         self.fig, self.ax = plt.subplots()
         plt.ion()
         plt.show()
-# self.ax = plt.figure()
-        self.ax = self.fig.add_subplot(111)
+        
+        if data.shape[1] == 3:
+            self.ax = self.fig.add_subplot(111, projection='3d')
+        else:
+            self.ax = self.fig.add_subplot(111)
         self.ax.axis("equal")
 
         # initial centers
@@ -37,7 +41,10 @@ class Kmeans:
             iter_cnt += 1
             stop = self.iterator()
             #time.sleep(0.5)
-            self.display()
+            if self.data.shape[1] == 2:
+                self.display2D()
+            else:
+                self.display3D()
         
             plt.title("iterator " + str(iter_cnt))
             plt.pause(0.01)
@@ -72,7 +79,28 @@ class Kmeans:
     def distance(self, a, b):
         return np.sum((a - b)**2, axis=1)
 
-    def display(self):
+    def display3D(self):
+        self.ax.cla()
+        for i in range(self.k):
+            self.ax.plot([x[0] for x in self.clusters[i]],
+                         [x[1] for x in self.clusters[i]],
+                         [x[2] for x in self.clusters[i]],
+                         marker='o',
+                         linestyle='',
+                         ms=4,
+                         color=self.color[i])
+        for i in range(self.k):
+            self.ax.plot([self.centers[i][0]],
+                         [self.centers[i][1]],
+                         [self.centers[i][2]],
+                         marker='o',
+                         linestyle='',
+                         ms=4,
+                         color='r')
+
+        self.fig.canvas.draw()
+
+    def display2D(self):
         self.ax.cla()
         for i in range(self.k):
             self.ax.plot([x[0] for x in self.clusters[i]],
