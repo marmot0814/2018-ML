@@ -11,7 +11,7 @@ class Kmeans:
 
         self.n = data.shape[0]
         self.k = k
-        self.color = ['r', 'g', 'b', 'y']
+        self.color = ['purple', 'g', 'b', 'y', 'pink']
 
         # shuffle data
         indices = np.random.permutation(self.n)
@@ -21,8 +21,9 @@ class Kmeans:
         self.fig, self.ax = plt.subplots()
         plt.ion()
         plt.show()
-        self.fig = plt.figure(1)
+        self.ax = plt.figure()
         self.ax = self.fig.add_subplot(111)
+        self.ax.axis("equal")
 
         # initial centers
         self.centers = np.array([self.data[i] for i in range(self.k)])
@@ -67,6 +68,7 @@ class Kmeans:
         return np.sum((a - b)**2, axis=1)
 
     def display(self):
+        self.ax.cla()
         for i in range(self.k):
             self.ax.plot([x[0] for x in self.clusters[i]],
                          [x[1] for x in self.clusters[i]],
@@ -74,6 +76,13 @@ class Kmeans:
                          linestyle='',
                          ms=4,
                          color=self.color[i])
+        for i in range(self.k):
+            self.ax.plot([self.centers[i][0]],
+                         [self.centers[i][1]],
+                         marker='o',
+                         linestyle='',
+                         ms=4,
+                         color='r')
 
         self.fig.canvas.draw()
 
