@@ -11,7 +11,7 @@ class Kmeans:
 
         self.n = data.shape[0]
         self.k = k
-        self.color = ['purple', 'g', 'b', 'y', 'pink']
+        self.color = ['purple', 'g', 'b', 'y', 'pink', 'm', 'c', 'black']
 
         # shuffle data
         indices = np.random.permutation(self.n)
@@ -21,7 +21,7 @@ class Kmeans:
         self.fig, self.ax = plt.subplots()
         plt.ion()
         plt.show()
-        self.ax = plt.figure()
+# self.ax = plt.figure()
         self.ax = self.fig.add_subplot(111)
         self.ax.axis("equal")
 
@@ -32,14 +32,19 @@ class Kmeans:
         self.clusters = [np.array([]) for x in range(self.k)]
 
         # iterator
+        iter_cnt = 0
         while True:
+            iter_cnt += 1
             stop = self.iterator()
             #time.sleep(0.5)
             self.display()
-            plt.pause(0.5)
+        
+            plt.title("iterator " + str(iter_cnt))
+            plt.pause(0.01)
 
             if stop:
                 break
+        plt.pause(10)
 
     def iterator(self):
 
