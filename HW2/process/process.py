@@ -54,7 +54,7 @@ class Kmeans:
 
             if stop:
                 break
-        plt.pause(10)
+        plt.pause(1)
 
     def iterator(self):
         self.i += 1
@@ -122,5 +122,8 @@ class Kmeans:
 
         self.fig.canvas.draw()
 
-    def cost(self):
-        pass
+    def cost(self, data):
+        cost = 0
+        for _data in data:
+            cost += min(self.distance(self.centers, _data))
+        return cost
