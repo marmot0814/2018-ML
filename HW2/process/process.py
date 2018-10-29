@@ -9,20 +9,23 @@ from matplotlib import pyplot as plt
 class Kmeans:
 
     def __init__(self, data, k=3):
-
+        self.i = 0
         self.n = data.shape[0]
         self.k = k
-        self.color = ['purple', 'g', 'b', 'y', 'pink', 'm', 'c', 'black', 'lime', 'orange', 'brown', 'grey', '#abd03d', '#298834']
+        self.color = [
+            'purple', 'g', 'b', 'y', 'pink', 'm', 'c', 'black', 'lime',
+            'orange', 'brown', 'grey', '#abd03d', '#298834'
+        ]
 
         # shuffle data
         indices = np.random.permutation(self.n)
         self.data = np.array(data[indices])
 
         # initial plt
-        self.fig, self.ax = plt.subplots()
+        self.fig = plt.figure()
         plt.ion()
         plt.show()
-        
+
         if data.shape[1] == 3:
             self.ax = self.fig.add_subplot(111, projection='3d')
         else:
@@ -45,7 +48,7 @@ class Kmeans:
                 self.display2D()
             else:
                 self.display3D()
-        
+
             plt.title("iterator " + str(iter_cnt))
             plt.pause(0.01)
 
@@ -54,22 +57,24 @@ class Kmeans:
         plt.pause(10)
 
     def iterator(self):
-
+        self.i += 1
         # initial
         clusters = [[] for x in range(self.k)]
 
         # find the cluster of the data for each one
+        #print(self.distance(self.centers, self.data[0]))
+        #print(self.centers)
         for i in range(self.n):
             clusters[np.argmin(self.distance(
                 self.centers, self.data[i]))].append(self.data[i])
 
         # trans list to numpy array
-        clusters = [np.array(clusters[i]) for i in range(self.k)]
+        clustersr = [np.array(clusters[i]) for i in range(self.k)]
 
         # update centers
         self.centers = np.array(
             [np.mean(clusters[i], axis=0) for i in range(self.k)])
-
+        #print(self.centers)
         # swap old and new clusters
         self.clusters, clusters = clusters, self.clusters
 
@@ -90,8 +95,7 @@ class Kmeans:
                          ms=4,
                          color=self.color[i])
         for i in range(self.k):
-            self.ax.plot([self.centers[i][0]],
-                         [self.centers[i][1]],
+            self.ax.plot([self.centers[i][0]], [self.centers[i][1]],
                          [self.centers[i][2]],
                          marker='o',
                          linestyle='',
@@ -110,8 +114,7 @@ class Kmeans:
                          ms=4,
                          color=self.color[i])
         for i in range(self.k):
-            self.ax.plot([self.centers[i][0]],
-                         [self.centers[i][1]],
+            self.ax.plot([self.centers[i][0]], [self.centers[i][1]],
                          marker='o',
                          linestyle='',
                          ms=4,
