@@ -1,9 +1,13 @@
 import numpy as np
+import pandas as pd
 import time
 import matplotlib
 from mpl_toolkits.mplot3d import Axes3D
 matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
+from collections import Counter
+from sklearn.metrics import confusion_matrix
+import seaborn as sn
 
 
 class Kmeans:
@@ -25,13 +29,11 @@ class Kmeans:
         self.fig = plt.figure()
         plt.ion()
         plt.show()
-
         if data.shape[1] == 3:
             self.ax = self.fig.add_subplot(111, projection='3d')
         else:
             self.ax = self.fig.add_subplot(111)
         self.ax.axis("equal")
-
         # initial centers
         self.centers = np.array([self.data[i] for i in range(self.k)])
 
@@ -48,7 +50,6 @@ class Kmeans:
                 self.display2D()
             else:
                 self.display3D()
-
             plt.title("iterator " + str(iter_cnt))
             plt.pause(0.01)
 
@@ -69,7 +70,7 @@ class Kmeans:
                 self.centers, self.data[i]))].append(self.data[i])
 
         # trans list to numpy array
-        clustersr = [np.array(clusters[i]) for i in range(self.k)]
+        clusters = [np.array(clusters[i]) for i in range(self.k)]
 
         # update centers
         self.centers = np.array(
@@ -127,3 +128,24 @@ class Kmeans:
         for _data in data:
             cost += min(self.distance(self.centers, _data))
         return cost
+
+    def accuracy(self,data,data_type):
+        clusters = [[] for x in range(self.k)]
+        for i in range(self.n):
+            clusters[np.argmin(self.distance(
+                self.centers, data[i]))].append(data_type[i])
+
+        # confusion validation
+        c_type, c_pred = [], []
+        for line in clusters:
+            tmp = Counter(line).most_common(3)
+            c_type += line
+            c_pred += [tmp[0][0] for t in range(len(line))]
+
+        type_name = list(set(c_type))
+        df_cm = pd.DataFrame(confusion_matrix(c_type,c_pred), index=type_name, columns=type_name)
+        plt.figure(figsize = (10,7))
+        sn.heatmap(df_cm, annot=True,  fmt='g', cmap='Blues')
+        plt.show(1) 
+
+        return sum(a==b for a, b in zip(c_type,c_pred))/len(c_type)
