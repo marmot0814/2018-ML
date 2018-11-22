@@ -27,30 +27,30 @@ def gradient_descent(X, Y, learning_rate, epoch):
 		b -= learning_rate*db
 		# print(da, db, a, b, cost)
 	return a, b
-def p1(datas, keys, ind):
+def p1(datas, keys, index):
 	for i in range(len(keys)):
 		data = np.array(datas)[:,i].astype(np.float)
-		pidt = np.array(datas)[:,ind].astype(np.float)
+		pidt = np.array(datas)[:,index].astype(np.float)
 		lm = LinearRegression()
 		lm.fit(np.reshape(data,(len(data),1)),np.reshape(pidt,(len(pidt),1)))
 		print(lm.coef_,lm.intercept_,keys[i]) # 印出係數 截距
-def p2(datas, keys, ind, epoch):
+def p2(datas, keys, index, epoch):
 	for i in range(len(keys)):
 	# for i in range(1):
 		data = np.array(datas)[:,i].astype(np.float)
-		pidt = np.array(datas)[:,ind].astype(np.float)
+		pidt = np.array(datas)[:,index].astype(np.float)
 		a, b = gradient_descent(data, pidt, 0.001, epoch)
 		print(a, b, keys[i])
 
 def main():
-	datas, keys, ind = load_file('Concrete_Data.csv')
+	datas, keys, index = load_file('Concrete_Data.csv')
 	# for i in range(len(keys)):
 	print('Problem 1:')
-	p1(datas, keys, ind)
+	p1(datas, keys, index)
 	print('=============================')
 	epoch = 100000
 	print('Problem 2:')
-	p2(datas, keys, ind, epoch)
+	p2(datas, keys, index, epoch)
 
 if __name__ == "__main__":
     main()
