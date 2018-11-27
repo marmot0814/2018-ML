@@ -20,8 +20,9 @@ def load_file(filename):
         return train_datas, test_datas, keys, keys.index(MPa)
 
 
-def gradient_descent(X, Y, learning_rate, epoch):
+def gradient_descent(X, Y, lr, epoch):
     a, b = 0.0, 0.0
+    lr_a, lr_b = 0, 0
     num = len(Y)
     for i in range(epoch):
         y = a * X + b
@@ -31,11 +32,13 @@ def gradient_descent(X, Y, learning_rate, epoch):
         # softmax # overflow
         da = max(da, -1) if da < 0 else min(da, 1)
         db = max(db, -1) if db < 0 else min(db, 1)
-        a -= learning_rate * da
-        b -= learning_rate * db
-        # print(da, db, a, b, cost)
-    return a, b
 
+        # adagrad : converge faster
+        lr_a += da ** 2
+        lr_b += da ** 2
+        a -= lr / np.sqrt(lr_a) * da
+        b -= lr / np.sqrt(lr_b) * db
+    return a, b
 
 def plot(X, Y, weight, bias, keys):
     frames = len(weight)
@@ -104,7 +107,7 @@ def p2(datas, keys, index, epoch):
         # for i in range(1):
         data = np.array(datas)[:, i].astype(np.float)
         pidt = np.array(datas)[:, index].astype(np.float)
-        a, b = gradient_descent(data, pidt, 0.001, epoch)
+        a, b = gradient_descent(data, pidt, 0.1, epoch)
         print(a, b, keys[i])
 
 
@@ -113,9 +116,9 @@ def main():
     print('Problem 1:')
     p1(train_datas, test_datas, keys, index)
     print('=============================')
-    # epoch = 100000
-    # print('Problem 2:')
-    # p2(datas, keys, index, epoch)
+    epoch = 1000
+    print('Problem 2:')
+    p2(train_datas, keys, index, epoch)
 
 
 if __name__ == "__main__":
