@@ -135,10 +135,9 @@ def MVGD(X, Y, lr, epoch):  # multi-variable gradient descent
     return w
 
 
-def p3(datas, keys, y_index, epoch, test_datas):
+def p3(datas, keys, y_index, epoch, test_datas, lr):
     #print(datas[0])
     datas = np.array(datas).astype(np.float)  #training data
-    lr = 0.5
     w = MVGD(datas[:, 0:y_index], datas[:, y_index], lr, epoch)
     print("w = {}".format(w))
 
@@ -157,12 +156,12 @@ def main():
     #print('Problem 1:')
     #p1(train_datas, test_datas, keys, index)
     #print('=============================')
-    epoch = 3000
+    epoch = 1000
     #print('Problem 2:')
     #p2(train_datas, keys, index, epoch)
     print('=============================')
     print('Problem 3:')
-    p3(train_datas, keys, index, epoch, test_datas)
+    p3(train_datas, keys, index, epoch, test_datas, lr=0.5)
 
     print('=============================')
 
