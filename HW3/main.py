@@ -4,6 +4,8 @@ from sklearn import preprocessing
 import numpy as np
 import csv
 import random
+import pandas as pd
+import seaborn as sns; sns.set()
 
 MPa = 'Concrete compressive strength(MPa, megapascals) '
 
@@ -150,8 +152,23 @@ def p3(datas, keys, y_index, epoch, test_datas, lr):
     print("MSE = {}".format(MSE))
 
 
+def plot_unity(xdata, ydata, **kwargs):
+    sns.regplot(xdata, ydata, scatter_kws={'s':2, "color": "black"}, line_kws={"color": "red"})
+def pairplot():
+    df = pd.read_csv('Concrete_Data.csv')
+    g = sns.PairGrid(df, height = 5)
+    g = g.map_diag(plt.hist)
+    g = g.map_offdiag(plot_unity)
+    for i in range(9):
+        for j in range(9):
+            g.axes[i, j].set_xlabel(g.axes[i, j].get_xlabel(), rotation = 20, size = 7)
+            g.axes[i, j].set_ylabel('')
+    plt.subplots_adjust(bottom = 0.15, left = 0.05, top = 0.95, right = 0.95)
+    plt.show()
+
 def main():
     train_datas, test_datas, keys, index = load_file('Concrete_Data.csv')
+    
 
     #print('Problem 1:')
     #p1(train_datas, test_datas, keys, index)
@@ -164,6 +181,7 @@ def main():
     p3(train_datas, keys, index, epoch, test_datas, lr=0.5)
 
     print('=============================')
+    pairplot()
 
 
 if __name__ == "__main__":
