@@ -120,24 +120,27 @@ def p2(datas, keys, index, epoch):
 
 def MVGD(X, Y, lr, epoch):  # multi-variable gradient descent
     # init
-    w = (-0.2) + 0.4 * np.random.random_sample(X.shape[1],
+    w = (-0.2) + 0.4 * np.random.random_sample(X.shape[1] + 1,
                                               )  # sample from -0.2 ~ 0.2
     # w0 = 1, xi0 = 1
-    w = np.insert(w, 0, 1)
+    #w = np.insert(w, 0, 1)
     X = np.insert(X, 0, 1, axis=1)
     G = np.ones(len(w)) * 1e-6  # adagrad
     num = X.shape[0]
-
     #print(X.shape)
     # y = wx + b
     for _epoch in range(epoch):
+        if _epoch % 10 == 0:
+            print(w)
         y = np.dot(w, X.T)
         dw = -1 * np.array(
             [(np.sum([X[i][j] * (Y[i] - np.dot(w, X[i]))
                       for i in range(num)])) / num
              for j in range(len(w))])
         G += dw**2
+        G = 1
         w -= lr * (dw / np.sqrt(G))
+
     return w
 
 
@@ -188,11 +191,15 @@ def cubicGD(datas, data_indexs, Y, epoch, lr):  # 三次
 
 def p4(datas, data_indexs, keys, y_index, epoch, test_datas, lr):
     datas = np.array(datas).astype(np.float)  #training data
+    datas = datas - np.mean(datas, axis=0)
+    datas = datas / np.std(datas, axis=0)
     w = cubicGD(datas, data_indexs, datas[:, y_index], epoch, lr)
     print("w = {}".format(w))
     # MSE
     #print(epoch)
     test_datas = np.array(test_datas).astype(np.float)
+    test_datas = test_datas - np.mean(test_datas, axis=0)
+    test_datas = test_datas / np.std(test_datas, axis=0)
     test_Y = test_datas[:, y_index]
     test_X = test_datas[:, data_indexs]
     tmp_test_X = []
@@ -240,7 +247,7 @@ def pairplot():
 
 def main():
     train_datas, test_datas, keys, index = load_file('Concrete_Data.csv')
-    epoch = 500
+    epoch = 1000
     """
     #print('Problem 1:')
     #p1(train_datas, test_datas, keys, index)
@@ -258,11 +265,11 @@ def main():
     #p3(train_datas, keys, index, epoch, test_datas, lr=0.5)
     print('Problem 4:')
     #for i in range(len(train_datas[0])):
-    datas = []
-    for i in range(1000):
-        datas.append([i, i**3])
-    #p4(train_datas, [4], keys, index, epoch, test_datas, lr=10)
-    p4(datas, [0], keys, 1, epoch, datas, lr=0.01)
+    #datas = []
+    #for i in range(1000):
+    #    datas.append([i, i**3])
+    p4(train_datas, [2, 4, 8], keys, index, epoch, test_datas, lr=0.01)
+    #p4(datas, [0], keys, 1, epoch, datas, lr=0.01)
     print('=============================')
 
 
