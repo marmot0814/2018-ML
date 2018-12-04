@@ -5,7 +5,9 @@ import numpy as np
 import csv
 import random
 import pandas as pd
-import seaborn as sns; sns.set()
+import seaborn as sns
+import itertools
+sns.set()
 
 MPa = 'Concrete compressive strength(MPa, megapascals) '
 
@@ -125,6 +127,8 @@ def MVGD(X, Y, lr, epoch):  # multi-variable gradient descent
     X = np.insert(X, 0, 1, axis=1)
     G = np.ones(len(w)) * 1e-6  # adagrad
     num = X.shape[0]
+
+    #print(X.shape)
     # y = wx + b
     for _epoch in range(epoch):
         y = np.dot(w, X.T)
@@ -137,6 +141,12 @@ def MVGD(X, Y, lr, epoch):  # multi-variable gradient descent
     return w
 
 
+def MSE(w, test_X, test_Y):
+    y = np.dot(w, test_X.T)
+    MSE = np.sum(np.square(test_Y - y)) / test_X.shape[0]
+    return MSE
+
+
 def p3(datas, keys, y_index, epoch, test_datas, lr):
     #print(datas[0])
     datas = np.array(datas).astype(np.float)  #training data
@@ -146,34 +156,96 @@ def p3(datas, keys, y_index, epoch, test_datas, lr):
     # MSE
     test_datas = np.array(test_datas).astype(np.float)
     test_Y = test_datas[:, y_index]
-    test_X = np.insert(test_datas[:, 0:y_index], 0, 1, axis=1)
-    y = np.dot(w, test_X.T)
-    MSE = np.sum(np.square(test_Y - y)) / test_X.shape[0]
-    print("MSE = {}".format(MSE))
+    test_X = test_datas[:, 0:y_index]
+    test_X = np.insert(test_X, 0, 1, axis=1)  # insert x0
+    _MSE = MSE(w, test_X, test_Y)
+    print("MSE = {}".format(_MSE))
+
+
+def cubicGD(datas, data_indexs, Y, epoch, lr):  # 三次
+    # init
+    datas = datas[:, data_indexs]
+    #print(datas)
+    new_datas = []
+    for _data in datas:
+        new_data = []
+        _data = np.append(_data, 1)
+        for indexs in itertools.combinations_with_replacement(
+                range(len(data_indexs) + 1), 3):
+            #print(indexs)
+            new_data.append(np.product([_data[index] for index in indexs]))
+
+        new_data.pop()
+        new_datas.append(new_data)
+    new_datas = np.array(new_datas)
+    w = MVGD(new_datas, Y, lr, epoch)
+
+    train_MSE = MSE(w, np.insert(new_datas, 0, 1, axis=1), Y)
+    print("train_MSE = {}".format(train_MSE))
+
+    return w
+
+
+def p4(datas, data_indexs, keys, y_index, epoch, test_datas, lr):
+    datas = np.array(datas).astype(np.float)  #training data
+    w = cubicGD(datas, data_indexs, datas[:, y_index], epoch, lr)
+    print("w = {}".format(w))
+    # MSE
+    #print(epoch)
+    test_datas = np.array(test_datas).astype(np.float)
+    test_Y = test_datas[:, y_index]
+    test_X = test_datas[:, data_indexs]
+    tmp_test_X = []
+    for row in test_X:
+        new_row = [1]  # insert xi0 = 1
+        row = np.append(row, 1)
+        for indexs in itertools.combinations_with_replacement(
+                range(row.shape[0]), 3):
+            #print(indexs)
+            new_row.append(np.product([row[index] for index in indexs]))
+
+        new_row.pop()
+        tmp_test_X.append(new_row)
+
+    test_X = np.array(tmp_test_X)
+    print(test_X.shape[1])
+    _MSE = MSE(w, test_X, test_Y)
+    print("MSE = {}".format(_MSE))
 
 
 def plot_unity(xdata, ydata, **kwargs):
-    sns.regplot(xdata, ydata, scatter_kws={'s':2, "color": "black"}, line_kws={"color": "red"})
+    sns.regplot(
+        xdata,
+        ydata,
+        scatter_kws={
+            's': 2,
+            "color": "black"
+        },
+        line_kws={"color": "red"})
+
+
 def pairplot():
     df = pd.read_csv('Concrete_Data.csv')
-    g = sns.PairGrid(df, height = 5)
+    g = sns.PairGrid(df, height=5)
     g = g.map_diag(plt.hist)
     g = g.map_offdiag(plot_unity)
     for i in range(9):
         for j in range(9):
-            g.axes[i, j].set_xlabel(g.axes[i, j].get_xlabel(), rotation = 20, size = 7)
+            g.axes[i, j].set_xlabel(
+                g.axes[i, j].get_xlabel(), rotation=20, size=7)
             g.axes[i, j].set_ylabel('')
-    plt.subplots_adjust(bottom = 0.15, left = 0.05, top = 0.95, right = 0.95)
+    plt.subplots_adjust(bottom=0.15, left=0.05, top=0.95, right=0.95)
     plt.show()
+
 
 def main():
     train_datas, test_datas, keys, index = load_file('Concrete_Data.csv')
-    
-
+    epoch = 500
+    """
     #print('Problem 1:')
     #p1(train_datas, test_datas, keys, index)
     #print('=============================')
-    epoch = 1000
+    
     #print('Problem 2:')
     #p2(train_datas, keys, index, epoch)
     print('=============================')
@@ -182,6 +254,16 @@ def main():
 
     print('=============================')
     pairplot()
+    """
+    #p3(train_datas, keys, index, epoch, test_datas, lr=0.5)
+    print('Problem 4:')
+    #for i in range(len(train_datas[0])):
+    datas = []
+    for i in range(1000):
+        datas.append([i, i**3])
+    #p4(train_datas, [4], keys, index, epoch, test_datas, lr=10)
+    p4(datas, [0], keys, 1, epoch, datas, lr=0.01)
+    print('=============================')
 
 
 if __name__ == "__main__":
