@@ -8,15 +8,12 @@ import pandas as pd
 import seaborn as sns
 import itertools
 sns.set()
-
 MPa = 'Concrete compressive strength(MPa, megapascals) '
-
 
 def normarlize(data):
     data = data - np.mean(data, axis=0)
     data = data / np.std(data, axis=0)
     return data
-
 
 def load_file(filename):
     with open(filename, newline='') as csvfile:
@@ -31,7 +28,6 @@ def load_file(filename):
         test_datas = datas[int(0.8 * len(datas)):]
 
         return train_datas, test_datas, keys, keys.index(MPa)
-
 
 def gradient_descent(X, Y, lr, epoch):
     a, b = 0.0, 0.0
@@ -51,8 +47,7 @@ def gradient_descent(X, Y, lr, epoch):
         lr_b += da**2
         a -= lr / np.sqrt(lr_a) * da
         b -= lr / np.sqrt(lr_b) * db
-    return a, b
-
+    return a, b, cost
 
 def plot(X, Y, weight, bias, keys):
     frames = len(weight)
@@ -89,40 +84,44 @@ def plot(X, Y, weight, bias, keys):
         plt.tight_layout()
     plt.show()
 
+def plot_p1(data,pidt,lm):
+    plt.scatter(data, pidt, color='black')
+    plt.plot(data, lm.predict(np.reshape(data, (len(data), 1))), color='blue', linewidth=3)
+    # plt.plot(to_be_predicted, predicted_sales, color = 'red', marker = '^', markersize = 10)
+    ax = plt.gca()
+    ax.set_aspect(1)
+    plt.show()
 
 def p1(datas, test_datas, keys, index):
-    datas = np.array(datas).astype(np.float)  #training data
-    train_data = datas[:, 0:len(keys) - 1]
-    """
-    const_one_arr = np.ones((len(train_data), 1))
-    train_data = np.append(
-        const_one_arr, train_data, axis=1)  #append const column
-    """
-    target_data = datas[:, index]  #training target data
-    lm = LinearRegression().fit(train_data, target_data)
-    test_datas = np.array(test_datas).astype(np.float)  #testing data
-    test_data = test_datas[:, 0:len(keys) - 1]
-    """
-    const_one_arr = np.ones((len(test_datas), 1))
-    test_data = np.append(const_one_arr, test_data, axis=1)
-    """
-    test_target_data = test_datas[:, index]  #testing target data
+    print('Problem 1:')
+    print('weight  ','bias    ','loss    ','feature_name')
+    print('-----------------------------')
+    for i in range(len(keys)):
+        data = np.array(datas)[:,i].astype(np.float)
+        target = np.array(datas)[:,index].astype(np.float)
+        lm = LinearRegression()
+        lm.fit(np.reshape(data,(len(data),1)),np.reshape(target,(len(target),1)))
 
-    print("r2_score: ", lm.score(test_data, test_target_data))
-    print("weight: ", lm.coef_[0:])
-    print("bias: ", lm.intercept_)
+        test_data = np.array(test_datas)[:,i].astype(np.float)
+        test_target = np.array(test_datas)[:,index].astype(np.float)
+        # plot(test_data, test_pidt, lm.coef_, lm.coef_, keys[i])
+        # plot_p1(test_data,test_pidt,lm)
+        a, b = lm.coef_[0][0],lm.intercept_[0]
+        test_pidt = a * test_data + b
+        cost = sum([i**2 for i in (test_target - test_pidt)]) / len(test_target)
 
-    plot(test_data[:, 1:], test_target_data, lm.coef_[1:], lm.coef_[0], keys)
-
+        print(format(a,'0.6f'),format(b,'0.6f'),format(cost,'0.6f'),keys[i].split('(')[0]) # 印出係數 截距
 
 def p2(datas, keys, index, epoch):
+    print('=============================')
+    print('Problem 2:')
+    print('-----------------------------')
     for i in range(len(keys)):
         # for i in range(1):
         data = np.array(datas)[:, i].astype(np.float)
         pidt = np.array(datas)[:, index].astype(np.float)
-        a, b = gradient_descent(data, pidt, 0.1, epoch)
-        print(a, b, keys[i])
-
+        a, b, loss = gradient_descent(data, pidt, 0.1, epoch)
+        print(format(a,'0.6f'),format(b,'0.6f'),format(loss,'0.6f'),keys[i].split('(')[0]) # 印出係數 截距
 
 def MVGD(X, Y, lr, epoch):  # multi-variable gradient descent
     # init
@@ -149,14 +148,15 @@ def MVGD(X, Y, lr, epoch):  # multi-variable gradient descent
 
     return w
 
-
 def MSE(w, test_X, test_Y):
     y = np.dot(w, test_X.T)
     MSE = np.sum(np.square(test_Y - y)) / test_X.shape[0]
     return MSE
 
-
 def p3(datas, keys, y_index, epoch, test_datas, lr):
+    print('=============================')
+    print('Problem 3:')
+    print('-----------------------------')
     #print(datas[0])
     datas = np.array(datas).astype(np.float)  #training data
     w = MVGD(datas[:, 0:y_index], datas[:, y_index], lr, epoch)
@@ -194,7 +194,6 @@ def cubicGD(datas, data_indexs, Y, epoch, lr):  # 三次
 
     return w
 
-
 def p4(datas, data_indexs, keys, y_index, epoch, test_datas, lr):
     datas = np.array(datas).astype(np.float)  #training data
     datas = normarlize(datas)
@@ -223,7 +222,6 @@ def p4(datas, data_indexs, keys, y_index, epoch, test_datas, lr):
     _MSE = MSE(w, test_X, test_Y)
     print("MSE = {}".format(_MSE))
 
-
 def plot_unity(xdata, ydata, **kwargs):
     sns.regplot(
         xdata,
@@ -233,7 +231,6 @@ def plot_unity(xdata, ydata, **kwargs):
             "color": "black"
         },
         line_kws={"color": "red"})
-
 
 def pairplot():
     df = pd.read_csv('Concrete_Data.csv')
@@ -248,33 +245,21 @@ def pairplot():
     plt.subplots_adjust(bottom=0.15, left=0.05, top=0.95, right=0.95)
     plt.show()
 
-
 def main():
     train_datas, test_datas, keys, index = load_file('Concrete_Data.csv')
     epoch = 1000
-    """
-    #print('Problem 1:')
-    #p1(train_datas, test_datas, keys, index)
-    #print('=============================')
-    
-    #print('Problem 2:')
-    #p2(train_datas, keys, index, epoch)
-    print('=============================')
-    print('Problem 3:')
-    p3(train_datas, keys, index, epoch, test_datas, lr=0.5)
-
-    print('=============================')
-    pairplot()
-    """
+    p1(train_datas, test_datas, keys, index)
+    p2(train_datas, keys, index, epoch)
+    #pairplot()
     #p3(train_datas, keys, index, epoch, test_datas, lr=0.5)
-    print('Problem 4:')
+    #print('Problem 4:')
     #for i in range(len(train_datas[0])):
     #datas = []
     #for i in range(1000):
     #    datas.append([i, i**3])
-    p4(train_datas, [2, 4, 8], keys, index, epoch, test_datas, lr=0.01)
+    #p4(train_datas, [2, 4, 8], keys, index, epoch, test_datas, lr=0.01)
     #p4(datas, [0], keys, 1, epoch, datas, lr=0.01)
-    print('=============================')
+    #print('=============================')
 
 
 if __name__ == "__main__":
