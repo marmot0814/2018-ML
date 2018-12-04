@@ -10,10 +10,18 @@ import itertools
 sns.set()
 MPa = 'Concrete compressive strength(MPa, megapascals) '
 
-def normarlize(data):
-    data = data - np.mean(data, axis=0)
-    data = data / np.std(data, axis=0)
-    return data
+
+def R2(predict_y, test_Y):
+    y_mean = np.mean(test_Y)
+    _R2 = 1 - np.sum(np.square(predict_y - test_Y)) / np.sum(
+        np.square(test_Y - y_mean))
+    return _R2
+
+
+def MSE(predict_y, test_Y):
+    MSE = np.sum(np.square(test_Y - predict_y)) / test_Y.shape[0]
+    return MSE
+
 
 def load_file(filename):
     with open(filename, newline='') as csvfile:
@@ -29,9 +37,10 @@ def load_file(filename):
 
         return train_datas, test_datas, keys, keys.index(MPa)
 
+
 def gradient_descent(X, Y, lr, epoch):
     a, b = 0.0, 0.0
-    lr_a, lr_b = 1e-6, 1e-6
+    lr_a, lr_b = 1 + 1e-6, 1 + 1e-6
     num = len(Y)
     for i in range(epoch):
         y = a * X + b
@@ -48,6 +57,7 @@ def gradient_descent(X, Y, lr, epoch):
         a -= lr / np.sqrt(lr_a) * da
         b -= lr / np.sqrt(lr_b) * db
     return a, b, cost
+
 
 def plot(X, Y, weight, bias, keys):
     frames = len(weight)
@@ -84,33 +94,45 @@ def plot(X, Y, weight, bias, keys):
         plt.tight_layout()
     plt.show()
 
-def plot_p1(data,pidt,lm):
+
+def plot_p1(data, pidt, lm):
     plt.scatter(data, pidt, color='black')
-    plt.plot(data, lm.predict(np.reshape(data, (len(data), 1))), color='blue', linewidth=3)
+    plt.plot(
+        data,
+        lm.predict(np.reshape(data, (len(data), 1))),
+        color='blue',
+        linewidth=3)
     # plt.plot(to_be_predicted, predicted_sales, color = 'red', marker = '^', markersize = 10)
     ax = plt.gca()
     ax.set_aspect(1)
     plt.show()
 
+
 def p1(datas, test_datas, keys, index):
     print('Problem 1:')
-    print('weight  ','bias    ','loss    ','feature_name')
+    print('weight  ', 'bias    ', 'loss    ', 'feature_name')
     print('-----------------------------')
     for i in range(len(keys)):
-        data = np.array(datas)[:,i].astype(np.float)
-        target = np.array(datas)[:,index].astype(np.float)
+        data = np.array(datas)[:, i].astype(np.float)
+        target = np.array(datas)[:, index].astype(np.float)
         lm = LinearRegression()
-        lm.fit(np.reshape(data,(len(data),1)),np.reshape(target,(len(target),1)))
+        lm.fit(
+            np.reshape(data, (len(data), 1)),
+            np.reshape(target, (len(target), 1)))
 
-        test_data = np.array(test_datas)[:,i].astype(np.float)
-        test_target = np.array(test_datas)[:,index].astype(np.float)
+        test_data = np.array(test_datas)[:, i].astype(np.float)
+        test_target = np.array(test_datas)[:, index].astype(np.float)
         # plot(test_data, test_pidt, lm.coef_, lm.coef_, keys[i])
         # plot_p1(test_data,test_pidt,lm)
-        a, b = lm.coef_[0][0],lm.intercept_[0]
+        a, b = lm.coef_[0][0], lm.intercept_[0]
         test_pidt = a * test_data + b
-        cost = sum([i**2 for i in (test_target - test_pidt)]) / len(test_target)
+        cost = sum([i**2 for i in (test_target - test_pidt)
+                   ]) / len(test_target)
 
-        print(format(a,'0.6f'),format(b,'0.6f'),format(cost,'0.6f'),keys[i].split('(')[0]) # 印出係數 截距
+        print(
+            format(a, '0.6f'), format(b, '0.6f'), format(cost, '0.6f'),
+            keys[i].split('(')[0])  # 印出係數 截距
+
 
 def p2(datas, keys, index, epoch):
     print('=============================')
@@ -121,16 +143,23 @@ def p2(datas, keys, index, epoch):
         data = np.array(datas)[:, i].astype(np.float)
         pidt = np.array(datas)[:, index].astype(np.float)
         a, b, loss = gradient_descent(data, pidt, 0.1, epoch)
-        print(format(a,'0.6f'),format(b,'0.6f'),format(loss,'0.6f'),keys[i].split('(')[0]) # 印出係數 截距
+        print(
+            format(a, '0.6f'), format(b, '0.6f'), format(loss, '0.6f'),
+            keys[i].split('(')[0])  # 印出係數 截距
 
-def MVGD(X, Y, lr, epoch):  # multi-variable gradient descent
+
+def MVGD(X, Y, lr, epoch, init_w=None):  # multi-variable gradient descent
+    beta = 0.9  # currently not used, RMSprop is performing inferiorly
     # init
-    w = (-0.2) + 0.4 * np.random.random_sample(X.shape[1] + 1,
-                                              )  # sample from -0.2 ~ 0.2
+    if init_w is None:
+        # sample from -0.2 ~ 0.2
+        w = (-0.2) + 0.4 * np.random.random_sample(X.shape[1] + 1,)
+    else:
+        w = init_w
     # w0 = 1, xi0 = 1
     #w = np.insert(w, 0, 1)
     X = np.insert(X, 0, 1, axis=1)
-    G = np.ones(len(w))  #* 1e-6  # adagrad
+    G = np.ones(len(w)) / beta  #* 1e-6  # RMSprop
     num = X.shape[0]
     #print(X.shape)
     # y = wx + b
@@ -142,19 +171,15 @@ def MVGD(X, Y, lr, epoch):  # multi-variable gradient descent
             [(np.sum([X[i][j] * (Y[i] - np.dot(w, X[i]))
                       for i in range(num)])) / num
              for j in range(len(w))])
-        print(dw)
-        G += dw**2
+        #print(dw)
+        G = G + dw**2
         #G = 1
-        #print("G: {}".format(G))
+        print("G: {}".format(G))
 
         w -= lr * (dw / np.sqrt(G))
 
     return w
 
-def MSE(w, test_X, test_Y):
-    y = np.dot(w, test_X.T)
-    MSE = np.sum(np.square(test_Y - y)) / test_X.shape[0]
-    return MSE
 
 def p3(datas, keys, y_index, epoch, test_datas, lr):
     print('=============================')
@@ -170,11 +195,15 @@ def p3(datas, keys, y_index, epoch, test_datas, lr):
     test_Y = test_datas[:, y_index]
     test_X = test_datas[:, 0:y_index]
     test_X = np.insert(test_X, 0, 1, axis=1)  # insert x0
-    _MSE = MSE(w, test_X, test_Y)
+    predict_y = np.dot(w, test_X.T)
+    _MSE = MSE(predict_y, test_Y)
     print("MSE = {}".format(_MSE))
 
+    _R2 = R2(predict_y, test_Y)
+    print("R2 = {}".format(_R2))
 
-def cubicGD(datas, data_indexs, Y, epoch, lr):  # 三次
+
+def cubicGD(datas, data_indexs, Y, epoch, lr, init_w=None):  # 三次
     # init
     datas = datas[:, data_indexs]
     #print(datas)
@@ -190,22 +219,27 @@ def cubicGD(datas, data_indexs, Y, epoch, lr):  # 三次
         new_data.pop()
         new_datas.append(new_data)
     new_datas = np.array(new_datas)
-    w = MVGD(new_datas, Y, lr, epoch)
-
-    train_MSE = MSE(w, np.insert(new_datas, 0, 1, axis=1), Y)
+    w = MVGD(new_datas, Y, lr, epoch, init_w)
+    new_datas = np.insert(new_datas, 0, 1, axis=1)
+    train_MSE = MSE(np.dot(w, new_datas.T), Y)
     print("train_MSE = {}".format(train_MSE))
 
     return w
 
+
 def p4(datas, data_indexs, keys, y_index, epoch, test_datas, lr):
     datas = np.array(datas).astype(np.float)  #training data
-    datas = normarlize(datas)
+    init_w = [
+        1.44747139e+00, 3.02626038e-03, -4.50525635e-03, 1.10438939e-01,
+        2.07536562e-03, -8.73494001e-02, -6.82214168e-02, -4.47979718e-04,
+        3.61810999e-02, 3.46235821e-01
+    ]
+
     w = cubicGD(datas, data_indexs, datas[:, y_index], epoch, lr)
     print("w = {}".format(w))
     # MSE
-    #print(epoch)
+
     test_datas = np.array(test_datas).astype(np.float)
-    test_datas = normarlize(test_datas)
     test_Y = test_datas[:, y_index]
     test_X = test_datas[:, data_indexs]
     tmp_test_X = []
@@ -221,9 +255,13 @@ def p4(datas, data_indexs, keys, y_index, epoch, test_datas, lr):
         tmp_test_X.append(new_row)
 
     test_X = np.array(tmp_test_X)
-    print(test_X.shape[1])
-    _MSE = MSE(w, test_X, test_Y)
+    predict_y = np.dot(w, test_X.T)
+
+    _MSE = MSE(predict_y, test_Y)
     print("MSE = {}".format(_MSE))
+    _R2 = R2(predict_y, test_Y)
+    print("R2 = {}".format(_R2))
+
 
 def plot_unity(xdata, ydata, **kwargs):
     sns.regplot(
@@ -234,6 +272,7 @@ def plot_unity(xdata, ydata, **kwargs):
             "color": "black"
         },
         line_kws={"color": "red"})
+
 
 def pairplot():
     df = pd.read_csv('Concrete_Data.csv')
@@ -248,9 +287,10 @@ def pairplot():
     plt.subplots_adjust(bottom=0.15, left=0.05, top=0.95, right=0.95)
     plt.show()
 
+
 def main():
     train_datas, test_datas, keys, index = load_file('Concrete_Data.csv')
-    epoch = 10000
+    epoch = 5000
     """
     #print('Problem 1:')
     #p1(train_datas, test_datas, keys, index)
@@ -265,15 +305,9 @@ def main():
     print('=============================')
     pairplot()
     """
-    #p3(train_datas, keys, index, epoch, test_datas, lr=0.5)
-    #print('Problem 4:')
-    #for i in range(len(train_datas[0])):
-    """
-    datas = []
-    for i in range(1000):
-        datas.append([i, i**3])
-    """
-    p4(train_datas, [4, 8], keys, index, epoch, test_datas, lr=1)
+    p3(train_datas, keys, index, epoch, test_datas, lr=0.5)
+    print('Problem 4:')
+    #p4(train_datas, [4, 8], keys, index, epoch, test_datas, lr=0.1)
     #p4(datas, [0], keys, 1, epoch, datas, lr=1e-5)
 
     print('=============================')
