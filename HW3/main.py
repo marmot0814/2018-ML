@@ -12,6 +12,12 @@ sns.set()
 MPa = 'Concrete compressive strength(MPa, megapascals) '
 
 
+def normarlize(data):
+    data = data - np.mean(data, axis=0)
+    data = data / np.std(data, axis=0)
+    return data
+
+
 def load_file(filename):
     with open(filename, newline='') as csvfile:
         reader = list(csv.DictReader(csvfile))
@@ -191,15 +197,13 @@ def cubicGD(datas, data_indexs, Y, epoch, lr):  # 三次
 
 def p4(datas, data_indexs, keys, y_index, epoch, test_datas, lr):
     datas = np.array(datas).astype(np.float)  #training data
-    datas = datas - np.mean(datas, axis=0)
-    datas = datas / np.std(datas, axis=0)
+    datas = normarlize(datas)
     w = cubicGD(datas, data_indexs, datas[:, y_index], epoch, lr)
     print("w = {}".format(w))
     # MSE
     #print(epoch)
     test_datas = np.array(test_datas).astype(np.float)
-    test_datas = test_datas - np.mean(test_datas, axis=0)
-    test_datas = test_datas / np.std(test_datas, axis=0)
+    test_datas = normarlize(test_datas)
     test_Y = test_datas[:, y_index]
     test_X = test_datas[:, data_indexs]
     tmp_test_X = []
