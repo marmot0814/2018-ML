@@ -130,7 +130,7 @@ def MVGD(X, Y, lr, epoch):  # multi-variable gradient descent
     # w0 = 1, xi0 = 1
     #w = np.insert(w, 0, 1)
     X = np.insert(X, 0, 1, axis=1)
-    G = np.ones(len(w)) * 1e-6  # adagrad
+    G = np.ones(len(w))  #* 1e-6  # adagrad
     num = X.shape[0]
     #print(X.shape)
     # y = wx + b
@@ -142,8 +142,11 @@ def MVGD(X, Y, lr, epoch):  # multi-variable gradient descent
             [(np.sum([X[i][j] * (Y[i] - np.dot(w, X[i]))
                       for i in range(num)])) / num
              for j in range(len(w))])
+        print(dw)
         G += dw**2
-        G = 1
+        #G = 1
+        #print("G: {}".format(G))
+
         w -= lr * (dw / np.sqrt(G))
 
     return w
@@ -247,19 +250,33 @@ def pairplot():
 
 def main():
     train_datas, test_datas, keys, index = load_file('Concrete_Data.csv')
-    epoch = 1000
-    p1(train_datas, test_datas, keys, index)
-    p2(train_datas, keys, index, epoch)
-    #pairplot()
+    epoch = 10000
+    """
+    #print('Problem 1:')
+    #p1(train_datas, test_datas, keys, index)
+    #print('=============================')
+    
+    #print('Problem 2:')
+    #p2(train_datas, keys, index, epoch)
+    print('=============================')
+    print('Problem 3:')
+    p3(train_datas, keys, index, epoch, test_datas, lr=0.5)
+
+    print('=============================')
+    pairplot()
+    """
     #p3(train_datas, keys, index, epoch, test_datas, lr=0.5)
     #print('Problem 4:')
     #for i in range(len(train_datas[0])):
-    #datas = []
-    #for i in range(1000):
-    #    datas.append([i, i**3])
-    #p4(train_datas, [2, 4, 8], keys, index, epoch, test_datas, lr=0.01)
-    #p4(datas, [0], keys, 1, epoch, datas, lr=0.01)
-    #print('=============================')
+    """
+    datas = []
+    for i in range(1000):
+        datas.append([i, i**3])
+    """
+    p4(train_datas, [4, 8], keys, index, epoch, test_datas, lr=1)
+    #p4(datas, [0], keys, 1, epoch, datas, lr=1e-5)
+
+    print('=============================')
 
 
 if __name__ == "__main__":
