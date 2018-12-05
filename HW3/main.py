@@ -36,15 +36,15 @@ def gradient_descent(X, Y, lr, epoch):
     for i in range(epoch):
         y = a * X + b
         cost = sum([i**2 for i in (Y - y)]) / num
-        da = -(2 / num) * sum(X * (Y - y))
-        db = -(2 / num) * sum(Y - y)
+        da = -sum(X * (Y - y)) / num
+        db = -sum(Y - y) / num
         # softmax # overflow
-        da = max(da, -1) if da < 0 else min(da, 1)
-        db = max(db, -1) if db < 0 else min(db, 1)
+        # da = max(da, -1) if da < 0 else min(da, 1)
+        # db = max(db, -1) if db < 0 else min(db, 1)
 
         # adagrad : converge faster
         lr_a += da**2
-        lr_b += da**2
+        lr_b += db**2
         a -= lr / np.sqrt(lr_a) * da
         b -= lr / np.sqrt(lr_b) * db
     return a, b, cost
@@ -120,7 +120,7 @@ def p2(datas, keys, index, epoch):
         # for i in range(1):
         data = np.array(datas)[:, i].astype(np.float)
         pidt = np.array(datas)[:, index].astype(np.float)
-        a, b, loss = gradient_descent(data, pidt, 0.1, epoch)
+        a, b, loss = gradient_descent(data, pidt, 1, epoch)
         print(format(a,'0.6f'),format(b,'0.6f'),format(loss,'0.6f'),keys[i].split('(')[0]) # 印出係數 截距
 
 def MVGD(X, Y, lr, epoch):  # multi-variable gradient descent
@@ -143,7 +143,7 @@ def MVGD(X, Y, lr, epoch):  # multi-variable gradient descent
                       for i in range(num)])) / num
              for j in range(len(w))])
         G += dw**2
-        G = 1
+# G = 1
         w -= lr * (dw / np.sqrt(G))
 
     return w
@@ -251,7 +251,7 @@ def main():
     p1(train_datas, test_datas, keys, index)
     p2(train_datas, keys, index, epoch)
     #pairplot()
-    #p3(train_datas, keys, index, epoch, test_datas, lr=0.5)
+    p3(train_datas, keys, index, epoch, test_datas, lr=0.5)
     #print('Problem 4:')
     #for i in range(len(train_datas[0])):
     #datas = []
