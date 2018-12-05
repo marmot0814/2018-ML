@@ -148,32 +148,35 @@ def p2(datas, keys, index, epoch):
             keys[i].split('(')[0])  # 印出係數 截距
 
 def MVGD(X, Y, lr, epoch, init_w=None):  # multi-variable gradient descent
-    beta = 0.9  # currently not used, RMSprop is performing inferiorly
+    beta = 1  # currently not used, RMSprop is performing inferiorly
     # init
     if init_w is None:
         # sample from -0.2 ~ 0.2
         w = (-0.2) + 0.4 * np.random.random_sample(X.shape[1] + 1,)
+        #w = np.zeros(X.shape[1] + 1)
     else:
         w = init_w
     # w0 = 1, xi0 = 1
     #w = np.insert(w, 0, 1)
     X = np.insert(X, 0, 1, axis=1)
-    G = np.ones(len(w)) / beta  #* 1e-6  # RMSprop
+    G = np.ones(len(w))  #* 1e-6  # RMSprop
     num = X.shape[0]
     #print(X.shape)
     # y = wx + b
     for _epoch in range(epoch):
-        if _epoch % 10 == 0:
-            print(w)
+        if _epoch % 50 == 0:
+            pass
+            #print(w)
         y = np.dot(w, X.T)
         dw = -1 * np.array(
             [(np.sum([X[i][j] * (Y[i] - np.dot(w, X[i]))
                       for i in range(num)])) / num
              for j in range(len(w))])
         #print(dw)
+        dw = 0.001 * dw
         G = G + dw**2
         #G = 1
-        print("G: {}".format(G))
+        #print("G: {}".format(G))
         w -= lr * (dw / np.sqrt(G))
 
     return w
@@ -289,17 +292,28 @@ def pairplot():
 def main():
     train_datas, test_datas, keys, index = load_file('Concrete_Data.csv')
     epoch = 1000
-    p1(train_datas, test_datas, keys, index)
-    p2(train_datas, keys, index, epoch)
-    #pairplot()
+    """
+    #print('Problem 1:')
+    #p1(train_datas, test_datas, keys, index)
+    #print('=============================')
+    
+    #print('Problem 2:')
+    #p2(train_datas, keys, index, epoch)
+    print('=============================')
+    print('Problem 3:')
     p3(train_datas, keys, index, epoch, test_datas, lr=0.5)
-    #print('Problem 4:')
-    #for i in range(len(train_datas[0])):
-    #datas = []
-    #for i in range(1000):
-    #    datas.append([i, i**3])
-    #p4(train_datas, [2, 4, 8], keys, index, epoch, test_datas, lr=0.01)
-    #p4(datas, [0], keys, 1, epoch, datas, lr=0.01)
+
+    print('=============================')
+    pairplot()
+    """
+    #p3(train_datas, keys, index, epoch, test_datas, lr=0.5)
+    print('Problem 4:')
+    #p2(train_datas, keys, index, epoch)
+    #p4(train_datas, [4, 8], keys, index, epoch, test_datas, lr=0.1)
+    for i in range(len(test_datas[0]) - 1):
+        print(i)
+        p4(train_datas, [i], keys, index, epoch, test_datas, lr=0.001)
+    print('=============================')
 
 
 if __name__ == "__main__":
