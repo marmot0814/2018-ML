@@ -110,7 +110,7 @@ def plot_p1(data, pidt, lm):
 
 def p1(datas, test_datas, keys, index):
     print('Problem 1:')
-    print('weight  ', 'bias    ', 'loss    ', 'feature_name')
+    print('weight  ', 'bias    ', 'loss    ', 'feature_name    ', 'R2')
     print('-----------------------------')
     for i in range(len(keys)):
         data = np.array(datas)[:, i].astype(np.float)
@@ -131,8 +131,8 @@ def p1(datas, test_datas, keys, index):
 
         print(
             format(a, '0.6f'), format(b, '0.6f'), format(cost, '0.6f'),
-            keys[i].split('(')[0])  # 印出係數 截距
-        print("R2: {}".format(R2([a*test_data[i]+b for i in range(len(test_data))],test_target)))
+            keys[i].split('(')[0], R2([a*test_data[i]+b for i in range(len(test_data))],test_target))  # 印出係數 截距
+        #print("R2: {}".format(R2([a*test_data[i]+b for i in range(len(test_data))],test_target)))
 
 
 def p2(datas, keys, index, epoch):
