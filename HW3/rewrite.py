@@ -167,7 +167,7 @@ def main():
     train_data, test_data = load_file('Concrete_Data.csv')
     p1(train_data, test_data)
     p2(train_data, test_data)
-    p3(train_data, test_data)
+    # p3(train_data, test_data)
 
 if __name__ == "__main__":
     main()
