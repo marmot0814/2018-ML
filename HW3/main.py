@@ -13,7 +13,7 @@ MPa = 'Concrete compressive strength(MPa, megapascals) '
 
 def R2(predict_y, test_Y):
     y_mean = np.mean(test_Y)
-    _R2 = 1 - np.sum(np.square(predict_y - test_Y)) / np.sum(
+    _R2 = 1 - np.sum(np.square(predict_y - y_mean)) / np.sum(
         np.square(test_Y - y_mean))
     return _R2
 
@@ -132,6 +132,7 @@ def p1(datas, test_datas, keys, index):
         print(
             format(a, '0.6f'), format(b, '0.6f'), format(cost, '0.6f'),
             keys[i].split('(')[0])  # 印出係數 截距
+        print("R2: {}".format(R2([a*test_data[i]+b for i in range(len(test_data))],test_target)))
 
 
 def p2(datas, keys, index, epoch):
@@ -146,14 +147,16 @@ def p2(datas, keys, index, epoch):
         print(
             format(a, '0.6f'), format(b, '0.6f'), format(loss, '0.6f'),
             keys[i].split('(')[0])  # 印出係數 截距
+        
+
 
 def MVGD(X, Y, lr, epoch, init_w=None):  # multi-variable gradient descent
     beta = 1  # currently not used, RMSprop is performing inferiorly
     # init
     if init_w is None:
         # sample from -0.2 ~ 0.2
-        w = (-0.2) + 0.4 * np.random.random_sample(X.shape[1] + 1,)
-        #w = np.zeros(X.shape[1] + 1)
+        #w = (-0.2) + 0.4 * np.random.random_sample(X.shape[1] + 1,)
+        w = np.zeros(X.shape[1] + 1)
     else:
         w = init_w
     # w0 = 1, xi0 = 1
@@ -164,16 +167,14 @@ def MVGD(X, Y, lr, epoch, init_w=None):  # multi-variable gradient descent
     #print(X.shape)
     # y = wx + b
     for _epoch in range(epoch):
-        if _epoch % 50 == 0:
-            pass
-            #print(w)
+        if _epoch >= epoch - 5:
+            print(w)
         y = np.dot(w, X.T)
         dw = -1 * np.array(
             [(np.sum([X[i][j] * (Y[i] - np.dot(w, X[i]))
                       for i in range(num)])) / num
              for j in range(len(w))])
         #print(dw)
-        dw = 0.001 * dw
         G = G + dw**2
         #G = 1
         #print("G: {}".format(G))
@@ -220,7 +221,7 @@ def cubicGD(datas, data_indexs, Y, epoch, lr, init_w=None):  # 三次
         new_data.pop()
         new_datas.append(new_data)
     new_datas = np.array(new_datas)
-    w = MVGD(new_datas, Y, lr, epoch, init_w)
+    w = MVGD(new_datas, Y, lr, epoch)
     new_datas = np.insert(new_datas, 0, 1, axis=1)
     train_MSE = MSE(np.dot(w, new_datas.T), Y)
     print("train_MSE = {}".format(train_MSE))
@@ -291,17 +292,19 @@ def pairplot():
 
 def main():
     train_datas, test_datas, keys, index = load_file('Concrete_Data.csv')
-    epoch = 1000
+    epoch = 5000
     p1(train_datas, test_datas, keys, index)
-    p2(train_datas, keys, index, epoch)
+    #p2(train_datas, keys, index, epoch)
     # pairplot()
-    # p3(train_datas, keys, index, epoch, test_datas, lr=0.5)
+    #p3(train_datas, keys, index, epoch, test_datas, lr=0.5)
     print('Problem 4:')
     #p2(train_datas, keys, index, epoch)
-    #p4(train_datas, [4, 8], keys, index, epoch, test_datas, lr=0.1)
-    for i in range(len(test_datas[0]) - 1):
-        print(i)
-        p4(train_datas, [i], keys, index, epoch, test_datas, lr=0.001)
+    #p4(train_datas, [3, 5], keys, index, epoch, test_datas, lr=0.1)
+    #p4(train_datas, [3, 6], keys, index, epoch, test_datas, lr=0.1)
+    #p4(train_datas, [5, 6], keys, index, epoch, test_datas, lr=0.1)
+    # for i in range(len(test_datas[0]) - 1):
+    #     print(i)
+    #     p4(train_datas, [i], keys, index, epoch, test_datas, lr=0.1)
     print('=============================')
 
 
