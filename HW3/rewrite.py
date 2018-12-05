@@ -10,6 +10,13 @@ def load_file(filename):
 
     # shuffle
     df = df.sample(frac=1).reset_index(drop=True)
+    keys = list(df)
+    for i in range(8):
+        plt.subplot(2, 4, i + 1)
+        sns.scatterplot(df[keys[i]].values.reshape(len(df), ), df[keys[8]].values.reshape(len(df), ))
+        plt.xlabel(keys[i].split('(')[0])
+        plt.ylabel(keys[8].split('(')[0])
+    plt.show()
 
     # split train and test
     dataNumber = int(len(df.index) * 0.8)
@@ -48,6 +55,13 @@ def p1(train_data, test_data):
             keys[i].split('(')[0],
             sep = '\t'
         )
+        plt.subplot(2, 4, i + 1)
+        sns.regplot(x = test_data[keys[i]].values.reshape(len(test_data), ), y = test_data[keys[8]].values.reshape(len(test_data), ))
+        plt.xlabel(keys[i].split('(')[0])
+        plt.ylabel(keys[8].split('(')[0])
+    plt.show()
+
+
 
 def SVGD(X, Y, lr, epoch):
     a, b, eps = np.random.randn() * 0.002 - 0.001, np.random.randn() * 0.002 - 0.001, 1e-6
@@ -101,6 +115,15 @@ def p2(train_data, test_data):
             sep = '\t'
         )
 
+        plt.subplot(2, 4, i + 1)
+        plt.scatter(test_data[keys[i]].values.reshape(len(test_data), 1), test_data[keys[8]].values.reshape(len(test_data), 1))
+        minx = min(test_data[keys[i]].values.reshape(len(test_data), 1))
+        maxx = max(test_data[keys[i]].values.reshape(len(test_data), 1))
+        plt.plot([minx, maxx], [a[0] * minx + b[0], a[0] * maxx + b[0]])
+        plt.xlabel(keys[i].split('(')[0])
+        plt.ylabel(keys[8].split('(')[0])
+    plt.show()
+
 def MVGD(X, Y, lr, epoch):
     w = 0.002 * np.random.random_sample(X.shape[1] + 1,) - 0.001
     beta_1 = 0.9
@@ -117,41 +140,28 @@ def MVGD(X, Y, lr, epoch):
         V = beta_2 * V + (1 - beta_2) * (dw ** 2)
 
         w -= lr * (M / (1 - beta_1)) / (np.sqrt(V / (1 - beta_2)) + eps)
-        if i % 200 == 0:
-            print (MSE(w * X, Y))
     return w
 
 def p3(train_data, test_data):
     print('Problem 3:')
+    print('loss', 'r2', sep = '\t\t')
+    print('-------------------------------------------------------------')
     keys = list(train_data)
-    lm = LinearRegression().fit(
-        train_data[keys[0:8]].values,
-        train_data[keys[8]].values.reshape(len(train_data), 1),
-    )
-    y = lm.predict(test_data[keys[0:8]].values)
-    mse = MSE(y, test_data[keys[8]].values.reshape(len(test_data), 1))
-    r2 = R2(y, test_data[keys[8]].values.reshape(len(test_data), 1))
-    print (
-        format(mse, '0.6f'),
-        format(r2, '0.6f'),
-        sep = '\t'
-    )
 
-    print (train_data[[keys[1], keys[3], keys[7]]].values)
     w = MVGD(
-        X = train_data[[keys[1], keys[3], keys[7]]].values,
+        X = train_data[keys[0:8]].values,
         Y = train_data[keys[8]].values.reshape(len(train_data), 1),
         lr = 0.001,
-        epoch = 5000
+        epoch = 10000
     )
 
     mse = MSE(
-        w * np.insert(test_data[[keys[1], keys[3], keys[7]]].values, 0, 1, axis=1),
+        w * np.insert(test_data[keys[0:8]].values, 0, 1, axis=1),
         test_data[keys[8]].values.reshape(len(test_data), 1)
     )
 
     r2 = R2(
-        w * np.insert(test_data[[keys[1], keys[3], keys[7]]].values, 0, 1, axis=1),
+        w * np.insert(test_data[keys[0:8]].values, 0, 1, axis=1),
         test_data[keys[8]].values.reshape(len(test_data), 1)
     )
 
@@ -167,7 +177,7 @@ def main():
     train_data, test_data = load_file('Concrete_Data.csv')
     p1(train_data, test_data)
     p2(train_data, test_data)
-    # p3(train_data, test_data)
+    p3(train_data, test_data)
 
 if __name__ == "__main__":
     main()
