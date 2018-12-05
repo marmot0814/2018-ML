@@ -292,21 +292,10 @@ def pairplot():
 def main():
     train_datas, test_datas, keys, index = load_file('Concrete_Data.csv')
     epoch = 1000
-    """
-    #print('Problem 1:')
-    #p1(train_datas, test_datas, keys, index)
-    #print('=============================')
-    
-    #print('Problem 2:')
-    #p2(train_datas, keys, index, epoch)
-    print('=============================')
-    print('Problem 3:')
-    p3(train_datas, keys, index, epoch, test_datas, lr=0.5)
-
-    print('=============================')
-    pairplot()
-    """
-    #p3(train_datas, keys, index, epoch, test_datas, lr=0.5)
+    p1(train_datas, test_datas, keys, index)
+    p2(train_datas, keys, index, epoch)
+    # pairplot()
+    # p3(train_datas, keys, index, epoch, test_datas, lr=0.5)
     print('Problem 4:')
     #p2(train_datas, keys, index, epoch)
     #p4(train_datas, [4, 8], keys, index, epoch, test_datas, lr=0.1)
