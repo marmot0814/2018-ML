@@ -170,16 +170,10 @@ def MVGD(X, Y, lr, epoch, init_w=None):  # multi-variable gradient descent
             [(np.sum([X[i][j] * (Y[i] - np.dot(w, X[i]))
                       for i in range(num)])) / num
              for j in range(len(w))])
-<<<<<<< HEAD
-        G += dw**2
-# G = 1
-=======
         #print(dw)
         G = G + dw**2
         #G = 1
         print("G: {}".format(G))
-
->>>>>>> 06c98d466727e1f057e5fd34e9d05334b22a0dac
         w -= lr * (dw / np.sqrt(G))
 
     return w
@@ -294,7 +288,6 @@ def pairplot():
 
 def main():
     train_datas, test_datas, keys, index = load_file('Concrete_Data.csv')
-<<<<<<< HEAD
     epoch = 1000
     p1(train_datas, test_datas, keys, index)
     p2(train_datas, keys, index, epoch)
@@ -307,29 +300,6 @@ def main():
     #    datas.append([i, i**3])
     #p4(train_datas, [2, 4, 8], keys, index, epoch, test_datas, lr=0.01)
     #p4(datas, [0], keys, 1, epoch, datas, lr=0.01)
-=======
-    epoch = 5000
-    """
-    #print('Problem 1:')
-    #p1(train_datas, test_datas, keys, index)
->>>>>>> 06c98d466727e1f057e5fd34e9d05334b22a0dac
-    #print('=============================')
-    
-    #print('Problem 2:')
-    #p2(train_datas, keys, index, epoch)
-    print('=============================')
-    print('Problem 3:')
-    p3(train_datas, keys, index, epoch, test_datas, lr=0.5)
-
-    print('=============================')
-    pairplot()
-    """
-    p3(train_datas, keys, index, epoch, test_datas, lr=0.5)
-    print('Problem 4:')
-    #p4(train_datas, [4, 8], keys, index, epoch, test_datas, lr=0.1)
-    #p4(datas, [0], keys, 1, epoch, datas, lr=1e-5)
-
-    print('=============================')
 
 
 if __name__ == "__main__":
