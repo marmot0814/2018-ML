@@ -110,7 +110,7 @@ def plot_p1(data, pidt, lm):
 
 def p1(datas, test_datas, keys, index):
     print('Problem 1:')
-    print('weight  ', 'bias    ', 'loss    ', 'feature_name')
+    print('weight  ', 'bias    ', 'loss    ', 'feature_name    ', 'R2')
     print('-----------------------------')
     for i in range(len(keys)):
         data = np.array(datas)[:, i].astype(np.float)
@@ -131,7 +131,8 @@ def p1(datas, test_datas, keys, index):
 
         print(
             format(a, '0.6f'), format(b, '0.6f'), format(cost, '0.6f'),
-            keys[i].split('(')[0])  # 印出係數 截距
+            keys[i].split('(')[0], R2([a*test_data[i]+b for i in range(len(test_data))],test_target))  # 印出係數 截距
+        #print("R2: {}".format(R2([a*test_data[i]+b for i in range(len(test_data))],test_target)))
 
 
 def p2(datas, keys, index, epoch):
@@ -146,6 +147,8 @@ def p2(datas, keys, index, epoch):
         print(
             format(a, '0.6f'), format(b, '0.6f'), format(loss, '0.6f'),
             keys[i].split('(')[0])  # 印出係數 截距
+
+
 
 def p3(datas, keys, y_index, epoch, test_datas, lr):
     print('=============================')
@@ -174,8 +177,13 @@ def MVGD(X, Y, lr, epoch, init_w=None):  # multi-variable gradient descent
     # init
     if init_w is None:
         # sample from -0.2 ~ 0.2
+<<<<<<< HEAD
         w = (-0.001) + 0.002 * np.random.random_sample(X.shape[1] + 1,)
         #w = np.zeros(X.shape[1] + 1)
+=======
+        #w = (-0.2) + 0.4 * np.random.random_sample(X.shape[1] + 1,)
+        w = np.zeros(X.shape[1] + 1)
+>>>>>>> 85fd6da2772c2170d0e2da979aa784d42241fd32
     else:
         w = init_w
     # w0 = 1, xi0 = 1
@@ -186,16 +194,14 @@ def MVGD(X, Y, lr, epoch, init_w=None):  # multi-variable gradient descent
     #print(X.shape)
     # y = wx + b
     for _epoch in range(epoch):
-        if _epoch % 50 == 0:
-            pass
-            #print(w)
+        if _epoch >= epoch - 5:
+            print(w)
         y = np.dot(w, X.T)
         dw = 1 * np.array(
             [(np.sum([X[i][j] * (Y[i] - np.dot(w, X[i]))
                       for i in range(num)])) / num
              for j in range(len(w))])
         #print(dw)
-        dw = 0.001 * dw
         G = G + dw**2
         #G = 1
         # print("G: {}".format(lr / np.sqrt(G)))
@@ -273,7 +279,7 @@ def main():
 # p1(train_datas, test_datas, keys, index)
 # p2(train_datas, keys, index, epoch)
     # pairplot()
-    # p3(train_datas, keys, index, epoch, test_datas, lr=0.5)
+    #p3(train_datas, keys, index, epoch, test_datas, lr=0.5)
     print('Problem 4:')
     #p2(train_datas, keys, index, epoch)
     #p4(train_datas, [4, 8], keys, index, epoch, test_datas, lr=0.1)
