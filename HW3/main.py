@@ -177,13 +177,9 @@ def MVGD(X, Y, lr, epoch, init_w=None):  # multi-variable gradient descent
     # init
     if init_w is None:
         # sample from -0.2 ~ 0.2
-<<<<<<< HEAD
         w = (-0.001) + 0.002 * np.random.random_sample(X.shape[1] + 1,)
         #w = np.zeros(X.shape[1] + 1)
-=======
         #w = (-0.2) + 0.4 * np.random.random_sample(X.shape[1] + 1,)
-        w = np.zeros(X.shape[1] + 1)
->>>>>>> 85fd6da2772c2170d0e2da979aa784d42241fd32
     else:
         w = init_w
     # w0 = 1, xi0 = 1
