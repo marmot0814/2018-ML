@@ -126,7 +126,7 @@ def p2(train_data, test_data):
         plt.ylabel(keys[8].split('(')[0])
     plt.show()
 
-def MVGD(X, Y, lr, epoch, test_X, test_Y):
+def MVGD(X, Y, lr, epoch, test_X, test_Y, error_min, error_max):
     w = 0.002 * np.random.random_sample(X.shape[1] + 1,) - 0.001
     eps = 1e-8
     X = np.insert(X, 0, 1, axis=1)
@@ -145,14 +145,6 @@ def MVGD(X, Y, lr, epoch, test_X, test_Y):
         test_y = np.dot(test_X, w).reshape(test_X.shape[0], 1)
         dw = -1 * sum(Y - y) * w
 
-
-        if MSE(y, Y) < 300:
-            break
-
-        train_err = MSE(y, Y)
-        if train_err >= 10000:
-            w = 0.002 * np.random.random_sample(X.shape[1],) - 0.001
-            G = np.zeros(len(w))
 
         if i % 500 == 0:
             error_plot.cla()
@@ -183,12 +175,24 @@ def MVGD(X, Y, lr, epoch, test_X, test_Y):
             test_error.append(test_err)
 
 
-            error_plot.plot(list(range(i // 500 + 1)), train_error[0: (i // 500) + 1])
             error_plot.plot(list(range(i // 500 + 1)), test_error[0:(i//500) + 1])
+            error_plot.plot(list(range(i // 500 + 1)), train_error[0: (i // 500) + 1])
             error_plot.set_xlabel('iteration(* 500 epoch)')
             error_plot.set_ylabel('loss(MSE)')
             error_plot.set_ylim([0, 10000])
             fig.canvas.draw()
+
+        train_err = MSE(y, Y)
+
+        if train_err < error_min:
+            print (train_err)
+            print ('error is lower than {}, train finish'.format(error_min))
+            break
+
+        if train_err >= error_max:
+            w = 0.002 * np.random.random_sample(X.shape[1],) - 0.001
+            G = np.zeros(len(w))
+
         G += dw ** 2
         w -= lr / np.sqrt(G) * dw
     plt.plot()
@@ -207,7 +211,9 @@ def p3(train_data, test_data):
         lr = 0.0001,
         epoch = 10000000,
         test_X = test_data[keys[0:8]].values,
-        test_Y = test_data[keys[8]].values.reshape(len(test_data), 1)
+        test_Y = test_data[keys[8]].values.reshape(len(test_data), 1),
+        error_min = 300,
+        error_max = 10000
     )
 
     mse = MSE(
@@ -247,15 +253,17 @@ def p4(train_data, test_data):
         lr = 0.0001,
         epoch = 10000000,
         test_X = test_X,
-        test_Y = test_data[keys[8]].values.reshape(len(test_data), 1)
+        test_Y = test_data[keys[8]].values.reshape(len(test_data), 1),
+        error_min = 300,
+        error_max = 10000
     )
 
 
 def main():
     train_data, test_data = load_file('Concrete_Data.csv')
-    # p1(train_data, test_data)
-    # p2(train_data, test_data)
-    # p3(train_data, test_data)
+    p1(train_data, test_data)
+    p2(train_data, test_data)
+    p3(train_data, test_data)
     p4(train_data, test_data)
 
 if __name__ == "__main__":
