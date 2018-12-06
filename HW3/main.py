@@ -131,7 +131,9 @@ def p1(datas, test_datas, keys, index):
 
         print(
             format(a, '0.6f'), format(b, '0.6f'), format(cost, '0.6f'),
-            keys[i].split('(')[0], R2([a*test_data[i]+b for i in range(len(test_data))],test_target))  # 印出係數 截距
+            keys[i].split('(')[0],
+            R2([a * test_data[i] + b for i in range(len(test_data))],
+               test_target))  # 印出係數 截距
         #print("R2: {}".format(R2([a*test_data[i]+b for i in range(len(test_data))],test_target)))
 
 
@@ -147,7 +149,6 @@ def p2(datas, keys, index, epoch):
         print(
             format(a, '0.6f'), format(b, '0.6f'), format(loss, '0.6f'),
             keys[i].split('(')[0])  # 印出係數 截距
-
 
 
 def p3(datas, keys, y_index, epoch, test_datas, lr):
@@ -177,8 +178,8 @@ def MVGD(X, Y, lr, epoch, init_w=None):  # multi-variable gradient descent
     # init
     if init_w is None:
         # sample from -0.2 ~ 0.2
-        w = (-0.001) + 0.002 * np.random.random_sample(X.shape[1] + 1,)
-        #w = np.zeros(X.shape[1] + 1)
+        #w = (-0.001) + 0.002 * np.random.random_sample(X.shape[1] + 1,)
+        w = np.zeros(X.shape[1] + 1)
         #w = (-0.2) + 0.4 * np.random.random_sample(X.shape[1] + 1,)
     else:
         w = init_w
@@ -193,7 +194,7 @@ def MVGD(X, Y, lr, epoch, init_w=None):  # multi-variable gradient descent
         if _epoch >= epoch - 5:
             print(w)
         y = np.dot(w, X.T)
-        dw = 1 * np.array(
+        dw = -1 * np.array(
             [(np.sum([X[i][j] * (Y[i] - np.dot(w, X[i]))
                       for i in range(num)])) / num
              for j in range(len(w))])
@@ -201,7 +202,8 @@ def MVGD(X, Y, lr, epoch, init_w=None):  # multi-variable gradient descent
         G = G + dw**2
         #G = 1
         # print("G: {}".format(lr / np.sqrt(G)))
-        w -= lr / np.sqrt(G) * dw
+        if _epoch != 0:
+            w -= lr / np.sqrt(G) * dw
 
     return w
 
@@ -215,7 +217,7 @@ def cubicGD(datas, data_indexs, Y, epoch, lr, init_w=None):  # 三次
         new_data = []
         _data = np.append(_data, 1)
         for indexs in itertools.combinations_with_replacement(
-                range(len(data_indexs) + 1), 3):
+                range(len(data_indexs) + 1), 2):
             #print(indexs)
             new_data.append(np.product([_data[index] for index in indexs]))
 
@@ -252,7 +254,7 @@ def p4(datas, data_indexs, keys, y_index, epoch, test_datas, lr):
         new_row = [1]  # insert xi0 = 1
         row = np.append(row, 1)
         for indexs in itertools.combinations_with_replacement(
-                range(row.shape[0]), 3):
+                range(row.shape[0]), 2):
             #print(indexs)
             new_row.append(np.product([row[index] for index in indexs]))
 
@@ -270,18 +272,18 @@ def p4(datas, data_indexs, keys, y_index, epoch, test_datas, lr):
 
 def main():
     train_datas, test_datas, keys, index = load_file('Concrete_Data.csv')
-    print (index)
-    epoch = 3000
-# p1(train_datas, test_datas, keys, index)
-# p2(train_datas, keys, index, epoch)
+    print(index)
+    epoch = 5000
+    # p1(train_datas, test_datas, keys, index)
+    # p2(train_datas, keys, index, epoch)
     # pairplot()
     #p3(train_datas, keys, index, epoch, test_datas, lr=0.5)
     print('Problem 4:')
     #p2(train_datas, keys, index, epoch)
-    #p4(train_datas, [4, 8], keys, index, epoch, test_datas, lr=0.1)
-    for i in range(len(test_datas[0]) - 1):
-        print(i)
-        p4(train_datas, [i], keys, index, 5000, test_datas, lr=1)
+    p4(train_datas, [4], keys, index, epoch, test_datas, lr=10)
+    #for i in range(len(test_datas[0]) - 1):
+    #    print(i)
+    #    p4(train_datas, [i], keys, index, 1000, test_datas, lr=10)
     print('=============================')
 
 
