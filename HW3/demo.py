@@ -84,7 +84,7 @@ def SVGD(X, Y, lr, epoch):
         da = -sum(X * (Y - y)) / num
         db = -sum(Y - y) / num
 
-        # adagrad : converge faster
+        # adam : converge faster
         M_a = beta_1 * M_a + (1 - beta_1) * da
         M_b = beta_1 * M_b + (1 - beta_1) * db
         V_a = beta_2 * V_a + (1 - beta_2) * (da ** 2)
@@ -210,14 +210,18 @@ def MVGD(X, Y, lr, epoch, test_X, test_Y, optimizer, error_min, error_max, pids,
             R2_plot.set_title('Problem {}, train_r2 = {:0.3f}, test_r2 = {:0.3f}'.format(pids, train_r2, test_r2))
             R2_plot.plot(list(range(i // output_density + 1)), train_R2[0: (i // output_density) + 1], 'blue')
             R2_plot.plot(list(range(i // output_density + 1)), test_R2[0: (i // output_density) + 1], 'orange')
+            R2_plot.set_xlabel('iteration(* {} epoch)'.format(output_density))
 
             if lossFunction == 'MSE':
                 error_plot.set_ylabel('loss(MSE)')
+                R2_plot.set_ylabel('loss(MSE)')
 
             if lossFunction == 'LogCosh':
                 error_plot.set_ylabel('loss(LogCosh)')
+                R2_plot.set_ylabel('loss(LogCosh)')
 
             error_plot.set_ylim([0, error_max])
+            R2_plot.set_ylim([0, 1])
             error_fig.canvas.draw()
             R2_fig.canvas.draw()
 
@@ -254,20 +258,19 @@ def p3(train_data, test_data):
         X = X,
         Y = Y,
         lr = 0.0001,
-        epoch = 15000,
+        epoch = 20000,
         optimizer = 'adam',
         test_X = test_X,
         test_Y = test_Y,
         error_min = 0,
-        error_max = 50,
-        pids = 3,
-        lossFunction = 'LogCosh'
+        error_max = 1000,
+        pids = 3
     )
 
     logcosh = LogCosh(np.dot(test_X, w).reshape(test_X.shape[0], 1), test_Y)
     r2 = R2(np.dot(test_X, w).reshape(test_X.shape[0], 1), test_Y)
 
-    print('loss(LogCosh)', 'r2', sep = '\t\t')
+    print('loss(MSE)', 'r2', sep = '\t')
     print('-------------------------------------------------------------')
     print(
         format(logcosh, '0.6f'),
@@ -318,19 +321,18 @@ def p4(train_data, test_data):
         Y = train_data[keys[8]].values.reshape(len(train_data), 1),
         lr = 0.00001,
         optimizer = 'adam',
-        epoch = 15000,
+        epoch = 20000,
         test_X = test_X,
         test_Y = test_data[keys[8]].values.reshape(len(test_data), 1),
-        error_min = 300,
-        error_max = 100,
-        pids = 4,
-        lossFunction = 'LogCosh'
+        error_min = 0,
+        error_max = 10000,
+        pids = 4
     )
 
     logcosh = LogCosh(np.dot(test_X, w).reshape(test_X.shape[0], 1), test_Y)
     r2 = R2(np.dot(test_X, w).reshape(test_X.shape[0], 1), test_Y)
 
-    print('loss(LogCosh)', 'r2', sep = '\t\t')
+    print('loss(MSE)', 'r2', sep = '\t')
     print('-------------------------------------------------------------')
     print(
         format(logcosh, '0.6f'),
@@ -358,14 +360,13 @@ def p5(train_data, test_data):
             test_Y = test_Y,
             error_min = 300,
             error_max = 500,
-            pids = 5,
-            lossFunction = 'LogCosh'
+            pids = 5
         )
 
         mse = MSE(np.dot(test_X, w).reshape(test_X.shape[0], 1), test_Y)
         r2 = R2(np.dot(test_X, w).reshape(test_X.shape[0], 1), test_Y)
 
-    print('loss', 'r2', sep = '\t\t')
+    print('loss', 'r2', sep = '\t')
     print('-------------------------------------------------------------')
     print(
         format(mse, '0.6f'),
