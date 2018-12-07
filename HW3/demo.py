@@ -7,16 +7,18 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-def load_file(filename, visualized = True):
-    df = pd.read_csv(filename, dtype = np.float128)
+
+def load_file(filename, visualized=True):
+    df = pd.read_csv(filename, dtype=np.float128)
     # shuffle
     df = df.sample(frac=1).reset_index(drop=True)
     keys = list(df)
     if visualized:
         for i in range(8):
             plt.subplot(2, 4, i + 1)
-            sns.scatterplot(df[keys[i]].values.reshape(len(df), ), df[keys[8]].values.reshape(len(df), ))
-            plt.xlabel(keys[i].split('(')[0], fontSize = 10)
+            sns.scatterplot(df[keys[i]].values.reshape(len(df),),
+                            df[keys[8]].values.reshape(len(df),))
+            plt.xlabel(keys[i].split('(')[0], fontSize=10)
             plt.ylabel(keys[8].split('(')[0])
             plt.axis("equal")
         plt.show()
@@ -28,21 +30,25 @@ def load_file(filename, visualized = True):
 
     return train_data, test_data
 
+
 def MSE(y, Y):
     return np.sum(np.square(y - Y)) / y.shape[0]
+
 
 def LogCosh(y, Y):
     return np.sum(np.log(np.cosh(y - Y))) / y.shape[0]
 
+
 def R2(y, Y):
     return 1 - np.sum(np.square(Y - y)) / np.sum(np.square(Y - Y.mean()))
 
+
 def p1(train_data, test_data):
     print('Problem 1:')
-    print('weight', 'bias', 'loss', 'r2', 'feature_name', sep = '\t\t')
+    print('weight', 'bias', 'loss', 'r2', 'feature_name', sep='\t\t')
     print('-------------------------------------------------------------')
-    train_data = train_data.astype(dtype = np.float16)
-    test_data  = test_data.astype(dtype = np.float16)
+    train_data = train_data.astype(dtype=np.float16)
+    test_data = test_data.astype(dtype=np.float16)
 
     keys = list(train_data)
     for i in range(len(keys) - 1):
@@ -53,29 +59,29 @@ def p1(train_data, test_data):
         y = lm.predict(test_data[keys[i]].values.reshape(len(test_data), 1))
         mse = MSE(y, test_data[keys[8]].values.reshape(len(test_data), 1))
         r2 = R2(y, test_data[keys[8]].values.reshape(len(test_data), 1))
-        print (
+        print(
             format(lm.coef_[0][0], '0.6f'),
             format(lm.intercept_[0], '0.6f'),
             format(mse, '0.6f'),
             format(r2, '0.6f'),
             keys[i].split('(')[0],
-            sep = '\t'
-        )
+            sep='\t')
         plt.subplot(2, 4, i + 1)
         sns.regplot(
-            x = test_data[keys[i]].values.reshape(len(test_data)),
-            y = test_data[keys[8]].values.reshape(len(test_data))
-        )
+            x=test_data[keys[i]].values.reshape(len(test_data)),
+            y=test_data[keys[8]].values.reshape(len(test_data)))
         plt.xlabel(keys[i].split('(')[0])
         plt.ylabel(keys[8].split('(')[0])
         plt.axis("equal")
     plt.show()
 
+
 def SVGD(X, Y, lr, epoch):
-    a, b, eps = np.random.randn() * 0.002 - 0.001, np.random.randn() * 0.002 - 0.001, 1e-8
+    a, b, eps = np.random.randn() * 0.002 - 0.001, np.random.randn(
+    ) * 0.002 - 0.001, 1e-8
     M_a, M_b = 0, 0
     V_a, V_b = 0, 0
-    beta_1,beta_2 = 0.9, 0.999
+    beta_1, beta_2 = 0.9, 0.999
     error = np.inf
     cnt = 0
     num = len(Y)
@@ -87,8 +93,8 @@ def SVGD(X, Y, lr, epoch):
         # adam : converge faster
         M_a = beta_1 * M_a + (1 - beta_1) * da
         M_b = beta_1 * M_b + (1 - beta_1) * db
-        V_a = beta_2 * V_a + (1 - beta_2) * (da ** 2)
-        V_b = beta_2 * V_b + (1 - beta_2) * (db ** 2)
+        V_a = beta_2 * V_a + (1 - beta_2) * (da**2)
+        V_b = beta_2 * V_b + (1 - beta_2) * (db**2)
         a -= lr * M_a / (1 - beta_1) / np.sqrt(V_a / (1 - beta_2) + eps)
         b -= lr * M_b / (1 - beta_1) / np.sqrt(V_b / (1 - beta_2) + eps)
 
@@ -102,24 +108,20 @@ def SVGD(X, Y, lr, epoch):
         error = MSE(y, Y)
     return a, b
 
+
 def p2(train_data, test_data):
     print('Problem 2:')
-    print('weight', 'bias', 'loss', 'r2', 'feature_name', sep = '\t\t')
+    print('weight', 'bias', 'loss', 'r2', 'feature_name', sep='\t\t')
     print('-------------------------------------------------------------')
     keys = list(train_data)
 
     for i in range(len(keys) - 1):
-        X       = train_data[keys[i]].values.reshape(len(train_data), 1)
-        Y       = train_data[keys[8]].values.reshape(len(train_data), 1)
-        test_X  = test_data[keys[i]].values.reshape(len(test_data), 1)
-        test_Y  = test_data[keys[8]].values.reshape(len(test_data), 1)
+        X = train_data[keys[i]].values.reshape(len(train_data), 1)
+        Y = train_data[keys[8]].values.reshape(len(train_data), 1)
+        test_X = test_data[keys[i]].values.reshape(len(test_data), 1)
+        test_Y = test_data[keys[8]].values.reshape(len(test_data), 1)
         # train
-        a, b = SVGD(
-            X = X,
-            Y = Y,
-            lr = 0.5,
-            epoch = 5000
-        )
+        a, b = SVGD(X=X, Y=Y, lr=0.5, epoch=5000)
 
         # test
         mse = MSE(a[0] * test_X + b[0], test_Y)
@@ -131,8 +133,7 @@ def p2(train_data, test_data):
             format(mse, '0.6f'),
             format(r2, '0.6f'),
             keys[i].split('(')[0],
-            sep = '\t'
-        )
+            sep='\t')
 
         plt.subplot(2, 4, i + 1)
         plt.scatter(test_X, test_Y)
@@ -144,7 +145,18 @@ def p2(train_data, test_data):
         plt.axis("equal")
     plt.show()
 
-def MVGD(X, Y, lr, epoch, test_X, test_Y, optimizer, error_min, error_max, pids, lossFunction = 'MSE'):
+
+def MVGD(X,
+         Y,
+         lr,
+         epoch,
+         test_X,
+         test_Y,
+         optimizer,
+         error_min,
+         error_max,
+         pids,
+         lossFunction='MSE'):
     w = 0.002 * np.random.random_sample(X.shape[1]) - 0.001
     eps = 1e-8
 
@@ -179,7 +191,8 @@ def MVGD(X, Y, lr, epoch, test_X, test_Y, optimizer, error_min, error_max, pids,
         if lossFunction == 'MSE':
             dw = -1 * (Y - y).T.dot(X).reshape(X.shape[1]) / X.shape[0]
         if lossFunction == 'LogCosh':
-            dw = -((np.sinh(Y - y) / np.cosh(Y - y)).T.dot(X)).reshape(X.shape[1]) / X.shape[0]
+            dw = -((np.sinh(Y - y) / np.cosh(Y - y)).T.dot(X)).reshape(
+                X.shape[1]) / X.shape[0]
 
         if i % output_density == 0:
             error_plot.cla()
@@ -192,7 +205,6 @@ def MVGD(X, Y, lr, epoch, test_X, test_Y, optimizer, error_min, error_max, pids,
                 train_err = LogCosh(y, Y)
                 test_err = LogCosh(test_y, test_Y)
 
-
             train_error.append(train_err)
             test_error.append(test_err)
 
@@ -202,10 +214,17 @@ def MVGD(X, Y, lr, epoch, test_X, test_Y, optimizer, error_min, error_max, pids,
             train_R2.append(train_r2)
             test_R2.append(test_r2)
 
-            error_plot.set_title('Problem {}, train_error = {:0.3f}, test_error = {:0.3f}'.format(pids, train_err, test_err))
-            error_plot.plot(list(range(i // output_density + 1)), train_error[0: (i // output_density) + 1], 'blue')
-            error_plot.plot(list(range(i // output_density + 1)), test_error[0:(i//output_density) + 1], 'orange')
-            error_plot.set_xlabel('iteration(* {} epoch)'.format(output_density))
+            error_plot.set_title(
+                'Problem {}, train_error = {:0.3f}, test_error = {:0.3f}'.
+                format(pids, train_err, test_err))
+            error_plot.plot(
+                list(range(i // output_density + 1)),
+                train_error[0:(i // output_density) + 1], 'blue')
+            error_plot.plot(
+                list(range(i // output_density + 1)),
+                test_error[0:(i // output_density) + 1], 'orange')
+            error_plot.set_xlabel(
+                'iteration(* {} epoch)'.format(output_density))
 
             R2_plot.set_title('Problem {}, train_r2 = {:0.3f}, test_r2 = {:0.3f}'.format(pids, train_r2, test_r2))
             R2_plot.plot(list(range(i // output_density + 1)), train_R2[0: (i // output_density) + 1], 'blue')
@@ -236,23 +255,24 @@ def MVGD(X, Y, lr, epoch, test_X, test_Y, optimizer, error_min, error_max, pids,
         # print ('R2 = {}'.format(R2(test_y, test_Y)))
 
         if optimizer == 'adagrad':
-            G += dw ** 2
+            G += dw**2
             w -= lr / np.sqrt(G) * dw
 
         if optimizer == 'adam':
             M = beta_1 * M + (1 - beta_1) * dw
-            V = beta_2 * V + (1 - beta_2) * (dw ** 2)
+            V = beta_2 * V + (1 - beta_2) * (dw**2)
             w -= lr * M / (1 - beta_1) / (np.sqrt(V / (1 - beta_2)) + eps)
 
     return w
 
+
 def p3(train_data, test_data):
     print('Problem 3:')
     keys = list(train_data)
-    X       = Polynomialize(train_data[keys[0:8]].values, 1)
-    Y       = train_data[keys[8]].values.reshape(len(train_data), 1)
-    test_X  = Polynomialize(test_data[keys[0:8]].values, 1)
-    test_Y  = test_data[keys[8]].values.reshape(len(test_data), 1)
+    X = Polynomialize(train_data[keys[0:8]].values, 1)
+    Y = train_data[keys[8]].values.reshape(len(train_data), 1)
+    test_X = Polynomialize(test_data[keys[0:8]].values, 1)
+    test_Y = test_data[keys[8]].values.reshape(len(test_data), 1)
 
     w = MVGD(
         X = X,
@@ -272,49 +292,48 @@ def p3(train_data, test_data):
 
     print('loss(MSE)', 'r2', sep = '\t')
     print('-------------------------------------------------------------')
-    print(
-        format(logcosh, '0.6f'),
-        format(r2, '0.6f'),
-        sep = '\t'
-    )
+    print(format(logcosh, '0.6f'), format(r2, '0.6f'), sep='\t')
+
 
 def Polynomialize(data, deg):
     cubic_data = np.array([[1] for i in range(data.shape[0])])
     for i in range(1, deg + 1):
-        cubic_data = np.concatenate((cubic_data, data ** i), axis=1)
+        cubic_data = np.concatenate((cubic_data, data**i), axis=1)
     return cubic_data
+
 
 def Squared(data):
     res_data = np.array([[1] for i in range(data.shape[0])])
-    data = np.concatenate((data, res_data), axis = 1)
+    data = np.concatenate((data, res_data), axis=1)
     for i in range(data.shape[1]):
         for j in range(i, data.shape[1]):
-            res_data = np.concatenate((res_data, data[:, i].reshape(data.shape[0], 1) * data[:, j].reshape(data.shape[0], 1)), axis=1)
+            res_data = np.concatenate((res_data, data[:, i].reshape(
+                data.shape[0], 1) * data[:, j].reshape(data.shape[0], 1)),
+                                      axis=1)
     return res_data[:, 1:]
+
 
 def Cubic(data):
     res_data = np.array([[1] for i in range(data.shape[0])])
-    data = np.concatenate((data, res_data), axis = 1)
+    data = np.concatenate((data, res_data), axis=1)
     for i in range(data.shape[1]):
         for j in range(i, data.shape[1]):
             for k in range(j, data.shape[1]):
                 res_data = np.concatenate(
-                    (res_data,
-                        data[:, i].reshape(data.shape[0], 1)
-                      * data[:, j].reshape(data.shape[0], 1)
-                      * data[:, k].reshape(data.shape[0], 1)),
-                     axis=1
-                )
+                    (res_data, data[:, i].reshape(data.shape[0], 1) *
+                     data[:, j].reshape(data.shape[0], 1) * data[:, k].reshape(
+                         data.shape[0], 1)),
+                    axis=1)
     return res_data[:, 1:]
 
 
 def p4(train_data, test_data):
     print('Problem 4:')
     keys = list(train_data)
-    X       = Squared(train_data[keys[0:8]].values)
-    Y       = train_data[keys[8]].values.reshape(len(train_data), 1)
-    test_X  = Squared(test_data[keys[0:8]].values)
-    test_Y  = test_data[keys[8]].values.reshape(len(test_data), 1)
+    X = Squared(train_data[keys[0:8]].values)
+    Y = train_data[keys[8]].values.reshape(len(train_data), 1)
+    test_X = Squared(test_data[keys[0:8]].values)
+    test_Y = test_data[keys[8]].values.reshape(len(test_data), 1)
 
     w = MVGD(
         X = X,
@@ -334,21 +353,18 @@ def p4(train_data, test_data):
 
     print('loss(MSE)', 'r2', sep = '\t')
     print('-------------------------------------------------------------')
-    print(
-        format(logcosh, '0.6f'),
-        format(r2, '0.6f'),
-        sep = '\t'
-    )
+    print(format(logcosh, '0.6f'), format(r2, '0.6f'), sep='\t')
+
 
 def p5(train_data, test_data):
     print('Problem 5:')
     keys = list(train_data)
     selected_feature = keys[0:8]
     while True:
-        X       = Squared(train_data[selected_feature].values)
-        Y       = train_data[keys[8]].values.reshape(len(train_data), 1)
-        test_X  = Squared(test_data[selected_feature].values)
-        test_Y  = test_data[keys[8]].values.reshape(len(test_data), 1)
+        X = Squared(train_data[selected_feature].values)
+        Y = train_data[keys[8]].values.reshape(len(train_data), 1)
+        test_X = Squared(test_data[selected_feature].values)
+        test_Y = test_data[keys[8]].values.reshape(len(test_data), 1)
 
         w = MVGD(
             X = X,
@@ -368,21 +384,17 @@ def p5(train_data, test_data):
 
     print('loss', 'r2', sep = '\t')
     print('-------------------------------------------------------------')
-    print(
-        format(mse, '0.6f'),
-        format(r2, '0.6f'),
-        sep = '\t'
-    )
-
+    print(format(mse, '0.6f'), format(r2, '0.6f'), sep='\t')
 
 
 def main():
     train_data, test_data = load_file('Concrete_Data.csv')
-    p1(train_data, test_data)
-    p2(train_data, test_data)
+    #p1(train_data, test_data)
+    #p2(train_data, test_data)
     p3(train_data, test_data)
-    p4(train_data, test_data)
+    #p4(train_data, test_data)
     # p5(train_data, test_data)
+
 
 if __name__ == "__main__":
     main()
