@@ -257,7 +257,7 @@ def MVGD(X,
             R2_plot.legend(labels=['train_data R2', 'test_data R2'])
             error_fig.canvas.draw()
             R2_fig.canvas.draw()
-            plt.pause(0.01)
+            # plt.pause(0.01)
 
         if lossFunction == 'MSE':
             train_err = MSE(y, Y)
@@ -284,9 +284,9 @@ def MVGD(X,
 def p3(train_data, test_data):
     print('Problem 3:')
     keys = list(train_data)
-    X = Polynomialize(train_data[keys[0:8]].values, 1)
+    X = Linear(train_data[keys[0:8]].values)
     Y = train_data[keys[8]].values.reshape(len(train_data), 1)
-    test_X = Polynomialize(test_data[keys[0:8]].values, 1)
+    test_X = Linear(test_data[keys[0:8]].values)
     test_Y = test_data[keys[8]].values.reshape(len(test_data), 1)
 
     w = MVGD(
@@ -301,19 +301,18 @@ def p3(train_data, test_data):
         error_max=1000,
         pids=3)
 
-    logcosh = LogCosh(np.dot(test_X, w).reshape(test_X.shape[0], 1), test_Y)
+    mse = MSE(np.dot(test_X, w).reshape(test_X.shape[0], 1), test_Y)
     r2 = R2(np.dot(test_X, w).reshape(test_X.shape[0], 1), test_Y)
 
     print('loss(MSE)', 'r2', sep='\t')
     print('-------------------------------------------------------------')
-    print(format(logcosh, '0.6f'), format(r2, '0.6f'), sep='\t')
+    print(format(mse, '0.6f'), format(r2, '0.6f'), sep='\t')
 
 
-def Polynomialize(data, deg):
-    cubic_data = np.array([[1] for i in range(data.shape[0])])
-    for i in range(1, deg + 1):
-        cubic_data = np.concatenate((cubic_data, data**i), axis=1)
-    return cubic_data
+def Linear(data):
+    res_data = np.array([[1] for i in range(data.shape[0])])
+    res_data = np.concatenate((res_data, data), axis=1)
+    return res_data
 
 
 def Squared(data):
@@ -358,54 +357,22 @@ def p4(train_data, test_data):
         test_X=test_X,
         test_Y=test_data[keys[8]].values.reshape(len(test_data), 1),
         error_min=0,
-        error_max=10000,
+        error_max=1000,
         pids=4)
 
-    logcosh = LogCosh(np.dot(test_X, w).reshape(test_X.shape[0], 1), test_Y)
+    mse = MSE(np.dot(test_X, w).reshape(test_X.shape[0], 1), test_Y)
     r2 = R2(np.dot(test_X, w).reshape(test_X.shape[0], 1), test_Y)
 
     print('loss(MSE)', 'r2', sep='\t')
     print('-------------------------------------------------------------')
-    print(format(logcosh, '0.6f'), format(r2, '0.6f'), sep='\t')
-
-
-def p5(train_data, test_data):
-    print('Problem 5:')
-    keys = list(train_data)
-    selected_feature = keys[0:8]
-    while True:
-        X = Squared(train_data[selected_feature].values)
-        Y = train_data[keys[8]].values.reshape(len(train_data), 1)
-        test_X = Squared(test_data[selected_feature].values)
-        test_Y = test_data[keys[8]].values.reshape(len(test_data), 1)
-
-        w = MVGD(
-            X=X,
-            Y=train_data[keys[8]].values.reshape(len(train_data), 1),
-            lr=0.0001,
-            epoch=1000000,
-            optimizer='adam',
-            test_X=test_X,
-            test_Y=test_Y,
-            error_min=300,
-            error_max=500,
-            pids=5)
-
-        mse = MSE(np.dot(test_X, w).reshape(test_X.shape[0], 1), test_Y)
-        r2 = R2(np.dot(test_X, w).reshape(test_X.shape[0], 1), test_Y)
-
-    print('loss', 'r2', sep='\t')
-    print('-------------------------------------------------------------')
     print(format(mse, '0.6f'), format(r2, '0.6f'), sep='\t')
-
 
 def main():
     train_data, test_data = load_file('Concrete_Data.csv', visualized=False)
-    #p1(train_data, test_data)
-    #p2(train_data, test_data)
+    # p1(train_data, test_data)
+    # p2(train_data, test_data)
     p3(train_data, test_data)
-    #p4(train_data, test_data)
-    # p5(train_data, test_data)
+    p4(train_data, test_data)
 
 
 if __name__ == "__main__":
