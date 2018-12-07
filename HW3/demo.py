@@ -16,7 +16,7 @@ def load_file(filename, visualized = True):
         for i in range(8):
             plt.subplot(2, 4, i + 1)
             sns.scatterplot(df[keys[i]].values.reshape(len(df), ), df[keys[8]].values.reshape(len(df), ))
-            plt.xlabel(keys[i].split('(')[0])
+            plt.xlabel(keys[i].split('(')[0], fontSize = 10)
             plt.ylabel(keys[8].split('(')[0])
             plt.axis("equal")
         plt.show()
@@ -159,11 +159,15 @@ def MVGD(X, Y, lr, epoch, test_X, test_Y, optimizer, error_min, error_max, pids,
 
     train_error = []
     test_error = []
+    train_R2 = []
+    test_R2 = []
 
     plt.ion()
     plt.show()
     error_fig = plt.figure()
     error_plot = error_fig.add_subplot(111)
+    R2_fig = plt.figure()
+    R2_plot = R2_fig.add_subplot(111)
 
     output_density = 100
 
@@ -192,10 +196,20 @@ def MVGD(X, Y, lr, epoch, test_X, test_Y, optimizer, error_min, error_max, pids,
             train_error.append(train_err)
             test_error.append(test_err)
 
-            error_plot.set_title('Problem {}'.format(pids))
-            error_plot.plot(list(range(i // output_density + 1)), train_error[0: (i // output_density) + 1])
-            error_plot.plot(list(range(i // output_density + 1)), test_error[0:(i//output_density) + 1])
+            train_r2 = R2(y, Y)
+            test_r2 = R2(test_y, test_Y)
+
+            train_R2.append(train_r2)
+            test_R2.append(test_r2)
+
+            error_plot.set_title('Problem {}, train_error = {:0.3f}, test_error = {:0.3f}'.format(pids, train_err, test_err))
+            error_plot.plot(list(range(i // output_density + 1)), train_error[0: (i // output_density) + 1], 'blue')
+            error_plot.plot(list(range(i // output_density + 1)), test_error[0:(i//output_density) + 1], 'orange')
             error_plot.set_xlabel('iteration(* {} epoch)'.format(output_density))
+
+            R2_plot.set_title('Problem {}, train_r2 = {:0.3f}, test_r2 = {:0.3f}'.format(pids, train_r2, test_r2))
+            R2_plot.plot(list(range(i // output_density + 1)), train_R2[0: (i // output_density) + 1], 'blue')
+            R2_plot.plot(list(range(i // output_density + 1)), test_R2[0: (i // output_density) + 1], 'orange')
 
             if lossFunction == 'MSE':
                 error_plot.set_ylabel('loss(MSE)')
@@ -205,6 +219,7 @@ def MVGD(X, Y, lr, epoch, test_X, test_Y, optimizer, error_min, error_max, pids,
 
             error_plot.set_ylim([0, error_max])
             error_fig.canvas.draw()
+            R2_fig.canvas.draw()
 
         if lossFunction == 'MSE':
             train_err = MSE(y, Y)
@@ -212,9 +227,9 @@ def MVGD(X, Y, lr, epoch, test_X, test_Y, optimizer, error_min, error_max, pids,
         if lossFunction == 'LogCosh':
             train_err = LogCosh(y, Y)
 
-        print ('test_err({}) = {}'.format(lossFunction, test_err))
-        print ('train_err({}) = {}'.format(lossFunction, train_err))
-        print ('R2 = {}'.format(R2(test_y, test_Y)))
+        # print ('test_err({}) = {}'.format(lossFunction, test_err))
+        # print ('train_err({}) = {}'.format(lossFunction, train_err))
+        # print ('R2 = {}'.format(R2(test_y, test_Y)))
 
         if optimizer == 'adagrad':
             G += dw ** 2
@@ -238,24 +253,24 @@ def p3(train_data, test_data):
     w = MVGD(
         X = X,
         Y = Y,
-        lr = 0.001,
-        epoch = 10000,
+        lr = 0.0001,
+        epoch = 15000,
         optimizer = 'adam',
         test_X = test_X,
         test_Y = test_Y,
         error_min = 0,
-        error_max = 3000,
+        error_max = 50,
         pids = 3,
         lossFunction = 'LogCosh'
     )
 
-    mse = MSE(np.dot(test_X, w).reshape(test_X.shape[0], 1), test_Y)
+    logcosh = LogCosh(np.dot(test_X, w).reshape(test_X.shape[0], 1), test_Y)
     r2 = R2(np.dot(test_X, w).reshape(test_X.shape[0], 1), test_Y)
 
-    print('loss', 'r2', sep = '\t\t')
+    print('loss(LogCosh)', 'r2', sep = '\t\t')
     print('-------------------------------------------------------------')
     print(
-        format(mse, '0.6f'),
+        format(logcosh, '0.6f'),
         format(r2, '0.6f'),
         sep = '\t'
     )
@@ -301,24 +316,24 @@ def p4(train_data, test_data):
     w = MVGD(
         X = X,
         Y = train_data[keys[8]].values.reshape(len(train_data), 1),
-        lr = 100,
-        optimizer = 'adagrad',
-        epoch = 10000,
+        lr = 0.00001,
+        optimizer = 'adam',
+        epoch = 15000,
         test_X = test_X,
         test_Y = test_data[keys[8]].values.reshape(len(test_data), 1),
         error_min = 300,
-        error_max = 10000,
+        error_max = 100,
         pids = 4,
         lossFunction = 'LogCosh'
     )
 
-    mse = MSE(np.dot(test_X, w).reshape(test_X.shape[0], 1), test_Y)
+    logcosh = LogCosh(np.dot(test_X, w).reshape(test_X.shape[0], 1), test_Y)
     r2 = R2(np.dot(test_X, w).reshape(test_X.shape[0], 1), test_Y)
 
-    print('loss', 'r2', sep = '\t\t')
+    print('loss(LogCosh)', 'r2', sep = '\t\t')
     print('-------------------------------------------------------------')
     print(
-        format(mse, '0.6f'),
+        format(logcosh, '0.6f'),
         format(r2, '0.6f'),
         sep = '\t'
     )
@@ -361,11 +376,11 @@ def p5(train_data, test_data):
 
 
 def main():
-    train_data, test_data = load_file('Concrete_Data.csv', False)
+    train_data, test_data = load_file('Concrete_Data.csv')
     p1(train_data, test_data)
     p2(train_data, test_data)
-    # p3(train_data, test_data)
-    # p4(train_data, test_data)
+    p3(train_data, test_data)
+    p4(train_data, test_data)
     # p5(train_data, test_data)
 
 if __name__ == "__main__":
