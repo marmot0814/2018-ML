@@ -249,9 +249,9 @@ def MVGD(X, Y, lr, epoch, test_X, test_Y, optimizer, error_min, error_max, pids,
 def p3(train_data, test_data):
     print('Problem 3:')
     keys = list(train_data)
-    X       = Polynomialize(train_data[keys[0:8]].values, 1)
+    X       = Linear(train_data[keys[0:8]].values)
     Y       = train_data[keys[8]].values.reshape(len(train_data), 1)
-    test_X  = Polynomialize(test_data[keys[0:8]].values, 1)
+    test_X  = Linear(test_data[keys[0:8]].values)
     test_Y  = test_data[keys[8]].values.reshape(len(test_data), 1)
 
     w = MVGD(
@@ -278,13 +278,12 @@ def p3(train_data, test_data):
         sep = '\t'
     )
 
-def Polynomialize(data, deg):
-    cubic_data = np.array([[1] for i in range(data.shape[0])])
-    for i in range(1, deg + 1):
-        cubic_data = np.concatenate((cubic_data, data ** i), axis=1)
-    return cubic_data
+def Linear(data):
+    res_data = np.array([[1] for i in range(data.shape[0])])
+    data = np.concatenate((data, res_data), axis = 1)
+    return data
 
-def Squared(data):
+def Square(data):
     res_data = np.array([[1] for i in range(data.shape[0])])
     data = np.concatenate((data, res_data), axis = 1)
     for i in range(data.shape[1]):
@@ -311,9 +310,9 @@ def Cubic(data):
 def p4(train_data, test_data):
     print('Problem 4:')
     keys = list(train_data)
-    X       = Squared(train_data[keys[0:8]].values)
+    X       = Square(train_data[keys[0:8]].values)
     Y       = train_data[keys[8]].values.reshape(len(train_data), 1)
-    test_X  = Squared(test_data[keys[0:8]].values)
+    test_X  = Square(test_data[keys[0:8]].values)
     test_Y  = test_data[keys[8]].values.reshape(len(test_data), 1)
 
     w = MVGD(
@@ -345,9 +344,9 @@ def p5(train_data, test_data):
     keys = list(train_data)
     selected_feature = keys[0:8]
     while True:
-        X       = Squared(train_data[selected_feature].values)
+        X       = Square(train_data[selected_feature].values)
         Y       = train_data[keys[8]].values.reshape(len(train_data), 1)
-        test_X  = Squared(test_data[selected_feature].values)
+        test_X  = Square(test_data[selected_feature].values)
         test_Y  = test_data[keys[8]].values.reshape(len(test_data), 1)
 
         w = MVGD(
