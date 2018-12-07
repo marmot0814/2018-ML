@@ -8,7 +8,7 @@ import pandas as pd
 import seaborn as sns
 
 def load_file(filename, visualized = True):
-    df = pd.read_csv(filename)
+    df = pd.read_csv(filename, dtype = np.float128)
     # shuffle
     df = df.sample(frac=1).reset_index(drop=True)
     keys = list(df)
@@ -32,18 +32,18 @@ def MSE(y, Y):
     return np.sum(np.square(y - Y)) / y.shape[0]
 
 def LogCosh(y, Y):
-    return np.sum(np.log(np.cosh(y - Y)))
+    return np.sum(np.log(np.cosh(y - Y))) / y.shape[0]
 
-def R2(predict_y, test_Y):
-    y_mean = np.mean(test_Y)
-    _R2 = 1 - np.sum(np.square(predict_y - test_Y)) / np.sum(
-        np.square(test_Y - y_mean))
-    return _R2
+def R2(y, Y):
+    return 1 - np.sum(np.square(Y - y)) / np.sum(np.square(Y - Y.mean()))
 
 def p1(train_data, test_data):
     print('Problem 1:')
     print('weight', 'bias', 'loss', 'r2', 'feature_name', sep = '\t\t')
     print('-------------------------------------------------------------')
+    train_data = train_data.astype(dtype = np.float16)
+    test_data  = test_data.astype(dtype = np.float16)
+
     keys = list(train_data)
     for i in range(len(keys) - 1):
         lm = LinearRegression().fit(
@@ -71,24 +71,36 @@ def p1(train_data, test_data):
         plt.axis("equal")
     plt.show()
 
-
 def SVGD(X, Y, lr, epoch):
-    a, b, eps = np.random.randn() * 0.002 - 0.001, np.random.randn() * 0.002 - 0.001, 1e-6
-    lr_a, lr_b = eps, eps
+    a, b, eps = np.random.randn() * 0.002 - 0.001, np.random.randn() * 0.002 - 0.001, 1e-8
+    M_a, M_b = 0, 0
+    V_a, V_b = 0, 0
+    beta_1,beta_2 = 0.9, 0.999
+    error = np.inf
+    cnt = 0
     num = len(Y)
-    for i in range(epoch):
+    while True:
         y = a * X + b
         da = -sum(X * (Y - y)) / num
         db = -sum(Y - y) / num
 
         # adagrad : converge faster
-        lr_a += da**2
-        lr_b += db**2
-        a -= lr / np.sqrt(lr_a) * da
-        b -= lr / np.sqrt(lr_b) * db
+        M_a = beta_1 * M_a + (1 - beta_1) * da
+        M_b = beta_1 * M_b + (1 - beta_1) * db
+        V_a = beta_2 * V_a + (1 - beta_2) * (da ** 2)
+        V_b = beta_2 * V_b + (1 - beta_2) * (db ** 2)
+        a -= lr * M_a / (1 - beta_1) / np.sqrt(V_a / (1 - beta_2) + eps)
+        b -= lr * M_b / (1 - beta_1) / np.sqrt(V_b / (1 - beta_2) + eps)
+
+        if abs(MSE(y, Y) - error) < 0.001:
+            cnt += 1
+            if cnt > 100:
+                break
+        else:
+            cnt = 0
+
+        error = MSE(y, Y)
     return a, b
-
-
 
 def p2(train_data, test_data):
     print('Problem 2:')
@@ -105,8 +117,8 @@ def p2(train_data, test_data):
         a, b = SVGD(
             X = X,
             Y = Y,
-            lr = 1,
-            epoch = 2000
+            lr = 0.5,
+            epoch = 5000
         )
 
         # test
@@ -132,8 +144,7 @@ def p2(train_data, test_data):
         plt.axis("equal")
     plt.show()
 
-
-def MVGD(X, Y, lr, epoch, test_X, test_Y, optimizer, error_min, error_max, xlabel = '', ylabel = '', lossFunction = 'MSE'):
+def MVGD(X, Y, lr, epoch, test_X, test_Y, optimizer, error_min, error_max, pids, lossFunction = 'MSE'):
     w = 0.002 * np.random.random_sample(X.shape[1]) - 0.001
     eps = 1e-8
 
@@ -151,21 +162,20 @@ def MVGD(X, Y, lr, epoch, test_X, test_Y, optimizer, error_min, error_max, xlabe
 
     plt.ion()
     plt.show()
-
     error_fig = plt.figure()
     error_plot = error_fig.add_subplot(111)
 
-    output_density = 200
+    output_density = 100
 
     for i in range(epoch):
+
         y = np.dot(X, w).reshape(X.shape[0], 1)
         test_y = np.dot(test_X, w).reshape(test_X.shape[0], 1)
 
         if lossFunction == 'MSE':
             dw = -1 * (Y - y).T.dot(X).reshape(X.shape[1]) / X.shape[0]
         if lossFunction == 'LogCosh':
-            dw = ((np.sinh(Y - y) / np.cosh(Y - y)).T.dot(X)).reshape(X.shape[1])
-
+            dw = -((np.sinh(Y - y) / np.cosh(Y - y)).T.dot(X)).reshape(X.shape[1]) / X.shape[0]
 
         if i % output_density == 0:
             error_plot.cla()
@@ -182,6 +192,7 @@ def MVGD(X, Y, lr, epoch, test_X, test_Y, optimizer, error_min, error_max, xlabe
             train_error.append(train_err)
             test_error.append(test_err)
 
+            error_plot.set_title('Problem {}'.format(pids))
             error_plot.plot(list(range(i // output_density + 1)), train_error[0: (i // output_density) + 1])
             error_plot.plot(list(range(i // output_density + 1)), test_error[0:(i//output_density) + 1])
             error_plot.set_xlabel('iteration(* {} epoch)'.format(output_density))
@@ -201,8 +212,9 @@ def MVGD(X, Y, lr, epoch, test_X, test_Y, optimizer, error_min, error_max, xlabe
         if lossFunction == 'LogCosh':
             train_err = LogCosh(y, Y)
 
-        print (train_err)
-        print (R2(test_y, test_Y))
+        print ('test_err({}) = {}'.format(lossFunction, test_err))
+        print ('train_err({}) = {}'.format(lossFunction, train_err))
+        print ('R2 = {}'.format(R2(test_y, test_Y)))
 
         if optimizer == 'adagrad':
             G += dw ** 2
@@ -232,7 +244,9 @@ def p3(train_data, test_data):
         test_X = test_X,
         test_Y = test_Y,
         error_min = 0,
-        error_max = 3000
+        error_max = 3000,
+        pids = 3,
+        lossFunction = 'LogCosh'
     )
 
     mse = MSE(np.dot(test_X, w).reshape(test_X.shape[0], 1), test_Y)
@@ -258,7 +272,23 @@ def Squared(data):
     for i in range(data.shape[1]):
         for j in range(i, data.shape[1]):
             res_data = np.concatenate((res_data, data[:, i].reshape(data.shape[0], 1) * data[:, j].reshape(data.shape[0], 1)), axis=1)
-    return res_data
+    return res_data[:, 1:]
+
+def Cubic(data):
+    res_data = np.array([[1] for i in range(data.shape[0])])
+    data = np.concatenate((data, res_data), axis = 1)
+    for i in range(data.shape[1]):
+        for j in range(i, data.shape[1]):
+            for k in range(j, data.shape[1]):
+                res_data = np.concatenate(
+                    (res_data,
+                        data[:, i].reshape(data.shape[0], 1)
+                      * data[:, j].reshape(data.shape[0], 1)
+                      * data[:, k].reshape(data.shape[0], 1)),
+                     axis=1
+                )
+    return res_data[:, 1:]
+
 
 def p4(train_data, test_data):
     print('Problem 4:')
@@ -273,11 +303,13 @@ def p4(train_data, test_data):
         Y = train_data[keys[8]].values.reshape(len(train_data), 1),
         lr = 100,
         optimizer = 'adagrad',
-        epoch = 1000000000,
+        epoch = 10000,
         test_X = test_X,
         test_Y = test_data[keys[8]].values.reshape(len(test_data), 1),
         error_min = 300,
-        error_max = 10000
+        error_max = 10000,
+        pids = 4,
+        lossFunction = 'LogCosh'
     )
 
     mse = MSE(np.dot(test_X, w).reshape(test_X.shape[0], 1), test_Y)
@@ -291,14 +323,14 @@ def p4(train_data, test_data):
         sep = '\t'
     )
 
-
 def p5(train_data, test_data):
     print('Problem 5:')
     keys = list(train_data)
+    selected_feature = keys[0:8]
     while True:
-        X       = Squared(train_data[keys[0:8]].values)
+        X       = Squared(train_data[selected_feature].values)
         Y       = train_data[keys[8]].values.reshape(len(train_data), 1)
-        test_X  = Squared(test_data[keys[0:8]].values)
+        test_X  = Squared(test_data[selected_feature].values)
         test_Y  = test_data[keys[8]].values.reshape(len(test_data), 1)
 
         w = MVGD(
@@ -308,16 +340,15 @@ def p5(train_data, test_data):
             epoch = 1000000,
             optimizer = 'adam',
             test_X = test_X,
-            test_Y = test_data[keys[8]].values.reshape(len(test_data), 1),
+            test_Y = test_Y,
             error_min = 300,
-            error_max = 10000
+            error_max = 500,
+            pids = 5,
+            lossFunction = 'LogCosh'
         )
 
         mse = MSE(np.dot(test_X, w).reshape(test_X.shape[0], 1), test_Y)
         r2 = R2(np.dot(test_X, w).reshape(test_X.shape[0], 1), test_Y)
-        if r2 > 0.87:
-            break
-        train_data, test_data = load_file('Concrete_Data.csv', visualized = False)
 
     print('loss', 'r2', sep = '\t\t')
     print('-------------------------------------------------------------')
@@ -330,12 +361,12 @@ def p5(train_data, test_data):
 
 
 def main():
-    train_data, test_data = load_file('Concrete_Data.csv', visualized = False)
+    train_data, test_data = load_file('Concrete_Data.csv', False)
     p1(train_data, test_data)
     p2(train_data, test_data)
-    p3(train_data, test_data)
-    p4(train_data, test_data)
-    p5(train_data, test_data)
+    # p3(train_data, test_data)
+    # p4(train_data, test_data)
+    # p5(train_data, test_data)
 
 if __name__ == "__main__":
     main()
