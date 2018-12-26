@@ -51,6 +51,8 @@ if __name__ == "__main__":
     #print(coin_datas)
     prev_ten_data = []
     prev_ten_target = []
+
+    # 每十天的資料加總 除以10
     for index in range(len(coin_datas) - 10 + 1):
         i = index + 10
         ten_day_data = np.sum(coin_datas[i:i + 9], axis=0) / 10
@@ -58,6 +60,7 @@ if __name__ == "__main__":
         prev_ten_data.append(ten_day_data)
         prev_ten_target.append(ten_day_target)
 
+    # 切成 train & test data
     train_data = prev_ten_data[1:int(len(prev_ten_data) / 3 * 2)]
     train_target = prev_ten_target[1:int(len(prev_ten_target) / 3 * 2)]
 
@@ -66,3 +69,6 @@ if __name__ == "__main__":
     reg = LinearRegression().fit(train_data, train_target)
     print("train score: ", reg.score(train_data, train_target))
     print("test score: ", reg.score(test_data, test_target))
+    print(test_data[0])
+    print(test_target[0])
+    print(train_data[0])
