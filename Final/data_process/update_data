@@ -1,0 +1,4 @@
+#! /bin/bash
+
+python3 google_trend.py
+python3 coin_market.py
