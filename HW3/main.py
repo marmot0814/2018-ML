@@ -10,6 +10,7 @@ import itertools
 sns.set()
 MPa = 'Concrete compressive strength(MPa, megapascals) '
 
+
 def normarlize(data):
     data = data - np.mean(data, axis=0)
     data = data / np.std(data, axis=0)
@@ -257,7 +258,8 @@ def p4(datas, data_indexs, keys, y_index, epoch, test_datas, lr):
 
     means = means[data_indexs]
     stds = stds[data_indexs]
-    test_X = np.array([(test_X.T[i] - means[i])/stds[i] for i in range(len(means))]).T
+    test_X = np.array(
+        [(test_X.T[i] - means[i]) / stds[i] for i in range(len(means))]).T
     tmp_test_X = []
     for row in test_X:
         new_row = [1]  # insert xi0 = 1
@@ -270,10 +272,8 @@ def p4(datas, data_indexs, keys, y_index, epoch, test_datas, lr):
         new_row.pop()
         tmp_test_X.append(new_row)
 
-   
     test_X = np.array(tmp_test_X)
-    
-    
+
     predict_y = np.dot(w, test_X.T)
     predict_y = predict_y * stds[-1] + means[-1]
     _MSE = MSE(predict_y, test_Y)
