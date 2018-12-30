@@ -1,4 +1,6 @@
 #! /bin/bash
 
-python3 google_trend.py
-python3 coin_market.py
+SCRIPTPATH=$(dirname $0)
+
+python3 $SCRIPTPATH/google_trend.py
+python3 $SCRIPTPATH/coin_market.py
