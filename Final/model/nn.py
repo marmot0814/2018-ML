@@ -81,11 +81,11 @@ ordered_data, ordered_target, train_data, train_target, test_data, test_target =
 
 model = Sequential()
 model.add(Dense(input_dim = 7 * k, units = 1000, activation='relu'))
-model.add(Dropout(0.7))
+model.add(Dropout(0.7122))
 model.add(Dense(units=2, activation='softmax'))
 
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-model.fit(train_data, train_target, batch_size = 100, epochs=400)
+model.fit(train_data, train_target, batch_size = 100, epochs=1000)
 
 res = model.evaluate(test_data, test_target)
 
