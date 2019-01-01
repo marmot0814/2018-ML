@@ -82,10 +82,11 @@ while epochs:
     epochs -= 1
     model.fit(train_data, train_target, batch_size = 100, epochs=1)
     output = go(model, test_data, test_money)
-    print (output)
     if output > max_output:
         max_output = output
         model.save('best.h5')
 
 model = load_model('best.h5')
-print (go(model, test_data, test_money))
+print ("if you throw 10000 coin in the market, you will get {0} coin in reward.".format(go(model, test_data, test_money)))
+print ("train acc: {0}".format(model.evaluate(train_data, train_target)[1]))
+print ("test acc: {0}".format(model.evaluate(test_data, test_target)[1]))
