@@ -16,6 +16,8 @@ def load_trend():
 def load_coin_mkt():
     csv = "../data_process/coin_market.csv"
     df = pd.read_csv(csv).drop("Date", axis = 1).drop('Unnamed: 0', axis = 1)[::-1]
+    df["Market Cap"] = df["Market Cap"].str.replace(',', '').astype(float)
+    df["Volume"] = df["Volume"].str.replace(',', '').astype(float)
     return df
 
 def normalized(df):
