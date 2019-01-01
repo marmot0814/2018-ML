@@ -12,6 +12,7 @@ from sklearn.utils import shuffle
 def load_trend():
     csv = "../data_process/google_trend.csv"
     df = pd.read_csv(csv)
+    print(df
     search_sum = np.sum(df.values[:, 1:], axis=0)
     prev_month = 1
     s = 0
