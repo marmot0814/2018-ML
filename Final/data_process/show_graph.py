@@ -10,7 +10,6 @@ def load_trend():
     csv = "../data_process/google_trend.csv"
     df = pd.read_csv(csv)
     search_sum = np.sum(df.values[:, [1, 3]], axis=1)
-    #print(df.values[:, 2])
     prev_month = 1
     s = 0
     month_sum = []
@@ -42,9 +41,6 @@ def load_coin_mkt():
     df["Market Cap"] = df["Market Cap"].str.replace(',', '').astype(float)
     df["Volume"] = df["Volume"].str.replace(',', '').astype(float)
 
-    print(df.head())
-    #return df.drop(
-    #    "Close**", axis=1).values[:, 1:], df.loc[:, "Close**"].values
     dates = df["Date"].values
     closes = df["Close**"].values
 
@@ -77,7 +73,7 @@ if __name__ == "__main__":
     plt.ylabel("Close")
     plt.gcf().autofmt_xdate()
 
-    ##
+    ## 
     ## Volume-date fig
     fig_volume = plt.figure(2)
     # date tick
@@ -90,7 +86,8 @@ if __name__ == "__main__":
     plt.ylabel("Volume")
     plt.gcf().autofmt_xdate()
 
-    # 將兩者標準化放在一起看
+    ##
+    ## 將兩者標準化放在一起看
     fig_close_volumn = plt.figure(3)
     close_norm = preprocessing.scale(data["close"])
     volume_norm = preprocessing.scale(data["volume"])
