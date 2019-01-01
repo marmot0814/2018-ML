@@ -39,13 +39,8 @@ def load_coin_mkt():
     df = df.loc[df['Date'] > "2014-00-00"]
     df["Market Cap"] = df["Market Cap"].str.replace(',', '').astype(float)
     df["Volume"] = df["Volume"].str.replace(',', '').astype(float)
-    #print(df.head())
-    #print(df['Date'] > "2014-00-00")
 
-    #datas = []
-    #print(df.values[:, 1:])
-    #print(df.columns)
-    print(df.head())
+    # print(df.head())
     return df.drop(
         "Close**", axis=1).values[:, 2:], df.loc[:, "Close**"].values
 
@@ -54,12 +49,10 @@ if __name__ == "__main__":
     #print(len(load_trend()))
     coin_datas, coin_target = load_coin_mkt()
     price = np.array(coin_target[10:])
-    #print(coin_target)
-    #print(coin_datas)
     prev_ten_data = []
     prev_ten_target = []
 
-    tmp_target = [0]
+    # tmp_target = [0]
     for i in range(len(coin_target) - 1):
         tmp_target.append(int(coin_target[i + 1] - coin_target[i] > 0))
     coin_target = tmp_target
@@ -86,11 +79,11 @@ if __name__ == "__main__":
     train_target = prev_ten_target[0:int(len(prev_ten_target) / 3 * 2)]
     print(train_target)
 
-    test_data = prev_ten_data[int(len(prev_ten_data) / 3 * 2):-1]
-    test_target = prev_ten_target[int(len(prev_ten_target) / 3 * 2):-1]
-    price = price[int(len(prev_ten_target) / 3 * 2):-1]
-    #reg = LinearRegression().fit(train_data, train_target)
-    reg = SVC(gamma='auto').fit(train_data, train_target)
+    test_data = prev_ten_data[int(len(prev_ten_data) / 3 * 2):]
+    test_target = prev_ten_target[int(len(prev_ten_target) / 3 * 2):]
+    price = price[int(len(prev_ten_target) / 3 * 2):]
+    reg = LinearRegression().fit(train_data, train_target)
+    #reg = SVC(gamma='auto').fit(train_data, train_target)
     #print("weight: ", reg.coef_)
     #print("train score: ", reg.score(train_data, train_target))
     #print("test score: ", reg.score(test_data, test_target))
