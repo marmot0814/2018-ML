@@ -84,7 +84,7 @@ while epochs:
     epochs -= 1
     model.fit(train_data, train_target, batch_size = 100, epochs=1)
     output = go(model, test_data, test_money)
-    if output > max_output:
+    if output > max_output and model.evaluate(train_data, train_target)[1] > 0.9:
         max_output = output
         model.save('best.h5')
 
