@@ -5,29 +5,31 @@ from sklearn.linear_model import LinearRegression
 import math
 from sklearn.svm import SVC
 from sklearn.utils import shuffle
+from sklearn.model_selection import KFold
 
 
-# load_trend() return the sum of search in every month
-# starting at 2014-Jan to 2018-Dec
+# date starts from 2013 Dec,
 def load_trend():
     csv = "../data_process/google_trend.csv"
     df = pd.read_csv(csv)
-    print(df
-    search_sum = np.sum(df.values[:, 1:], axis=0)
+    search_sum = np.sum(df.values[:, [1, 3]], axis=1)
     prev_month = 1
     s = 0
     month_sum = []
-    for i, day in enumerate(df.columns.values[2:]):
+    date = []
+    for i, day in enumerate(df.values[:, 2]):
+
         month = datetime.datetime.strptime(day, "%Y-%m-%d").month
 
         if (prev_month != month or i == len(df.columns.values[2:]) - 1):
             month_sum.append(s)
             prev_month = month
+            date.append(datetime.datetime.strptime(day, "%Y-%m-%d").date())
             s = 0
 
         s += search_sum[i]
 
-    return np.array(month_sum)
+    return np.flip(np.array(month_sum)), np.flip(np.array(date))
 
 
 def load_coin_mkt():
@@ -43,11 +45,49 @@ def load_coin_mkt():
 
     # print(df.head())
     return df.drop(
-        "Close**", axis=1).values[:, 2:], df.loc[:, "Close**"].values
+        "Close**", axis=1).values[:, 1:], df.loc[:, "Close**"].values
 
 
 if __name__ == "__main__":
-    #print(len(load_trend()))
+    data, close = load_coin_mkt()
+    date, data = data[0:-2, 0], data[0:-2, 1:]  # date start from 2014 Jan
+    month_sum, trend_date = load_trend()  # date start from 2013 Dec
+
+    # coin_mkt, trend日期對齊 都從2014 Jan開始 => 1:
+    # date是每 8 筆資料代表兩個月 不過最後一個月只有3筆
+    # 每兩個月的資料預測下個月的第一筆 所以我們讓最後一個月的資料只留下第一筆當作target => :-2
+    # trend_date 一筆資料一個月
+
+    month_sum = month_sum[1:-1]
+    trend_date = trend_date[1:-1]
+
+    ## 兩個月前的data 配target
+
+    two_month_data, two_month_target = [], []
+    print(len(date))
+    print(len(month_sum))
+    for i in range(8, len(date)):
+        d = []
+        d.extend(np.concatenate(data[i - 8:i], axis=None).tolist())
+        #d.extend(month_sum[int((i - 4) / 4):int(i / 4)].tolist())
+        two_month_data.append(d)
+        #print(len(d))
+        two_month_target.append(close[i])
+
+    # K-fold
+    kf = KFold(n_splits=8)
+    two_month_data = np.array(two_month_data)
+    print(two_month_data.shape)
+    two_month_target = np.array(two_month_target)
+    for train_index, test_index in kf.split(two_month_data):
+        train_data, train_target = two_month_data[
+            train_index], two_month_target[train_index]
+        test_data, test_target = two_month_data[test_index], two_month_target[
+            test_index]
+        reg = LinearRegression().fit(train_data, train_target)
+        #print("train score: ", reg.score(train_data, train_target))
+        print("test score: ", reg.score(test_data, test_target))
+    """
     coin_datas, coin_target = load_coin_mkt()
     price = np.array(coin_target[10:])
     prev_ten_data = []
@@ -113,3 +153,4 @@ if __name__ == "__main__":
     #    np.sum(np.square(reg.predict(test_data) - test_target)) /
     #    len(test_data))
     #print(np.sum(test_target - reg.predict(test_data)) / len(test_data))
+    """
