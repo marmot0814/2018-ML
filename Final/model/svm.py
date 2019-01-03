@@ -75,9 +75,11 @@ def go(model, test_data, test_money, coin=10000):
 k = 48*3
 train_data, train_target, test_data, test_target, test_money = load_data(k, 48*2)
 
-model = SVC(gamma='scale')
+model = SVC(kernel='rbf', C = 10.0, gamma=0.1)
 model.fit(train_data, train_target)
 
+train_acc = model.score(train_data, train_target)
+print ("train acc = {0}".format(train_acc))
 test_acc = model.score(test_data, test_target)
 print ("test acc = {0}".format(test_acc))
 
